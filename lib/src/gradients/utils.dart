@@ -134,7 +134,59 @@ extension GradientUtils on Gradient {
     double? softness,
   }) =>
       (this is IntermediateGradient)
-          ? this
+          ? IntermediateGradient(
+              (this as IntermediateGradient).type,
+              // Packets do not carry colors or stops
+              GradientPacket(
+                (this as IntermediateGradient).packet.a.copyWith(
+                      transform: transform ??
+                          (this as IntermediateGradient).packet.a.transform,
+                      tileMode: tileMode ??
+                          (this as IntermediateGradient).packet.a.tileMode,
+                      begin: begin ??
+                          (this as IntermediateGradient).packet.a.begin,
+                      end: end ?? (this as IntermediateGradient).packet.a.end,
+                      center: center ??
+                          (this as IntermediateGradient).packet.a.center,
+                      radius: radius ??
+                          (this as IntermediateGradient).packet.a.radius,
+                      focal: focal ??
+                          (this as IntermediateGradient).packet.a.focal,
+                      focalRadius: focalRadius ??
+                          (this as IntermediateGradient).packet.a.focalRadius,
+                      startAngle: startAngle ??
+                          (this as IntermediateGradient).packet.a.startAngle,
+                      endAngle: endAngle ??
+                          (this as IntermediateGradient).packet.a.endAngle,
+                      softness: softness ??
+                          (this as IntermediateGradient).packet.a.softness,
+                    ),
+                (this as IntermediateGradient).packet.b.copyWith(
+                      transform: transform ??
+                          (this as IntermediateGradient).packet.b.transform,
+                      tileMode: tileMode ??
+                          (this as IntermediateGradient).packet.b.tileMode,
+                      begin: begin ??
+                          (this as IntermediateGradient).packet.b.begin,
+                      end: end ?? (this as IntermediateGradient).packet.b.end,
+                      center: center ??
+                          (this as IntermediateGradient).packet.b.center,
+                      radius: radius ??
+                          (this as IntermediateGradient).packet.b.radius,
+                      focal: focal ??
+                          (this as IntermediateGradient).packet.b.focal,
+                      focalRadius: focalRadius ??
+                          (this as IntermediateGradient).packet.b.focalRadius,
+                      startAngle: startAngle ??
+                          (this as IntermediateGradient).packet.b.startAngle,
+                      endAngle: endAngle ??
+                          (this as IntermediateGradient).packet.b.endAngle,
+                      softness: softness ??
+                          (this as IntermediateGradient).packet.b.softness,
+                    ),
+                (this as IntermediateGradient).packet.t,
+              ),
+              (this as IntermediateGradient).primitiveGradient)
           : (this is PrimitiveGradient)
               ? this
               : (this is LinearGradient)
@@ -202,7 +254,7 @@ extension GradientUtils on Gradient {
                                     );
   // UNIVERSAL
   TileMode get tileMode => (this is IntermediateGradient)
-      ? TileMode.clamp
+      ? (this as IntermediateGradient).packet.tileMode
       : (this is PrimitiveGradient)
           ? TileMode.clamp
           : (this is LinearGradient)
@@ -219,7 +271,7 @@ extension GradientUtils on Gradient {
 
   // LINEAR
   AlignmentGeometry get begin => (this is IntermediateGradient)
-      ? Alignment.center
+      ? (this as IntermediateGradient).packet.begin
       : (this is PrimitiveGradient)
           ? Alignment.center
           : (this is LinearGradient)
@@ -235,7 +287,7 @@ extension GradientUtils on Gradient {
                               : Alignment.center;
 
   AlignmentGeometry get end => (this is IntermediateGradient)
-      ? Alignment.center
+      ? (this as IntermediateGradient).packet.end
       : (this is PrimitiveGradient)
           ? Alignment.center
           : (this is LinearGradient)
@@ -252,7 +304,7 @@ extension GradientUtils on Gradient {
 
   // RADIAL or SWEEP
   AlignmentGeometry get center => (this is IntermediateGradient)
-      ? Alignment.center
+      ? (this as IntermediateGradient).packet.center
       : (this is PrimitiveGradient)
           ? Alignment.center
           : (this is LinearGradient)
@@ -269,7 +321,7 @@ extension GradientUtils on Gradient {
 
   // RADIAL
   double get radius => (this is IntermediateGradient)
-      ? 0.0
+      ? (this as IntermediateGradient).packet.radius
       : (this is PrimitiveGradient)
           ? 0.0
           : (this is LinearGradient)
@@ -285,7 +337,7 @@ extension GradientUtils on Gradient {
                               : (this as RadialGradient).radius;
 
   AlignmentGeometry? get focal => (this is IntermediateGradient)
-      ? null
+      ? (this as IntermediateGradient).packet.focal
       : (this is PrimitiveGradient)
           ? null
           : (this is LinearGradient)
@@ -301,7 +353,7 @@ extension GradientUtils on Gradient {
                               : (this as RadialGradient).focal;
 
   double get focalRadius => (this is IntermediateGradient)
-      ? 0.0
+      ? (this as IntermediateGradient).packet.focalRadius
       : (this is PrimitiveGradient)
           ? 0.0
           : (this is LinearGradient)
@@ -318,7 +370,7 @@ extension GradientUtils on Gradient {
 
   // SWEEP
   double get startAngle => (this is IntermediateGradient)
-      ? 0.0
+      ? (this as IntermediateGradient).packet.startAngle
       : (this is PrimitiveGradient)
           ? 0.0
           : (this is LinearGradient)
@@ -334,7 +386,7 @@ extension GradientUtils on Gradient {
                               : 0.0;
 
   double get endAngle => (this is IntermediateGradient)
-      ? 0.0
+      ? (this as IntermediateGradient).packet.endAngle
       : (this is PrimitiveGradient)
           ? 0.0
           : (this is LinearGradient)
@@ -351,7 +403,7 @@ extension GradientUtils on Gradient {
 
   // STEPS
   double get softness => (this is IntermediateGradient)
-      ? 0.0
+      ? (this as IntermediateGradient).packet.softness
       : (this is PrimitiveGradient)
           ? 0.0
           : (this is LinearGradient)

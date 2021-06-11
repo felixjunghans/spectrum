@@ -48,8 +48,10 @@ class GradientTween extends Tween<Gradient?> {
         : IntermediateGradient(
             t < 0.5 ? begin.runtimeType : end.runtimeType,
             GradientPacket(begin!, end!, t),
-            PrimitiveGradient.interpolateFrom(
-                begin!.colors, begin!.stops, end!.colors, end!.stops, t),
+            PrimitiveGradient.interpolateFrom(begin!, end!, t),
+            // t < 0.5
+            //     ? PrimitiveGradient.from(begin!)
+            //     : PrimitiveGradient.from(end!),
           );
   }
 }

@@ -1,8 +1,8 @@
-/// | [![animation demonstrating the example app](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/example_small.gif)](https://pub.dev/packages/spectrum/example 'animation demonstrating the example app') | `spectrum` small desc. |
+/// | [![animation demonstrating the example app](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/tween_small.gif)](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/tween.gif 'animation demonstrating the example app') | `spectrum` |
 /// |:-:|:-:|
 ///
 /// ## [pub.dev Listing](https://pub.dev/packages/spectrum) | [API Doc](https://pub.dev/documentation/pacakge/latest) | [GitHub](https://github.com/Zabadam/pacakge)
-/// #### API References: [`Class`](https://pub.dev/documentation/spectrum/latest/spectrum/Class-class.html) | [`method()`](https://pub.dev/documentation/spectrum/latest/spectrum/method.html)
+/// #### API References: [`Operators`](https://pub.dev/documentation/spectrum/latest/spectrum/Operators.html) | [`Steps`](https://pub.dev/documentation/spectrum/latest/spectrum/Steps-class.html) | [`GradientTween`](https://pub.dev/documentation/spectrum/latest/spectrum/GradientTween.html)
 library spectrum;
 
 /// For links here in doc.

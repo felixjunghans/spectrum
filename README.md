@@ -1,6 +1,18 @@
 # spectrum
-## [pub.dev Listing](https://pub.dev/packages/spectrum) | [API Doc](https://pub.dev/documentation/pacakge/latest) | [GitHub](https://github.com/Zabadam/spectrum)
-#### API References: [`Shading`](https://pub.dev/documentation/spectrum/latest/spectrum/Shading.html) | [`method()`](https://pub.dev/documentation/spectrum/latest/spectrum/method.html)
+## [pub.dev Listing](https://pub.dev/packages/spectrum) | [API Doc](https://pub.dev/documentation/spectrum/latest) | [GitHub](https://github.com/Zabadam/spectrum)
+#### API References: [`Operators`](https://pub.dev/documentation/spectrum/latest/spectrum/Operators.html) | [`Steps`](https://pub.dev/documentation/spectrum/latest/spectrum/Steps-class.html) | [`GradientTween`](https://pub.dev/documentation/spectrum/latest/spectrum/GradientTween.html)
+
+Smooth `Gradient` tweening not just by `Gradient.lerp()`... oh no,
+that is not enough.
+
+This package provides full bespoke `IntermediateGradient`s for truly smooth
+and eye-popping gradient animations, amongst other things!
+
+[![Incredibly beautiful GradientTweens with IntermediateGradients](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/tween_small.gif)](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/tween.gif 'Click for full size | Incredibly beautiful GradientTweens with IntermediateGradients')
+
+`Color` operators are on deck as well as some nice methods to go along.
+
+More to come. Package in progress.
 
 ## 🛣️ Roadmap
 1. Additional `Color` utilities.

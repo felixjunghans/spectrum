@@ -134,6 +134,7 @@ class Example extends StatelessWidget {
       body: PageView(
         physics: const BouncingScrollPhysics(),
         children: [
+          const TestFoil(),
           buildView(
             color: Spectrum.materialColor(
               color,
@@ -151,56 +152,6 @@ class Example extends StatelessWidget {
               // factor: -50,
             ),
             subtitle: 'materialColor',
-          ),
-
-          const TestFoil(),
-
-          ///
-          DecoratedBox(
-            decoration: BoxDecoration(
-              gradient:
-                  // Gradient.lerp(
-                  // RadialSteps2(
-                  //   // begin: Alignment.topLeft,
-                  //   // end: Alignment.bottomRight,
-                  //   softness: 0.00,
-                  //   colors: [
-                  //     Colors.blue,
-                  //     Colors.red,
-                  //     Colors.green,
-                  //     Colors.yellow
-                  //   ],
-                  // ),
-                  steps,
-              // 0.25,
-              // ),
-            ),
-            child: SizedBox(width: w, height: h),
-          ),
-          DecoratedBox(
-            decoration: const BoxDecoration(
-              gradient: RadialSteps(
-                softness: 0.0025,
-                colors: [Colors.blue, Colors.red, Colors.green, Colors.yellow],
-              ),
-            ),
-            child: SizedBox(width: w, height: h),
-          ),
-          DecoratedBox(
-            decoration: const BoxDecoration(
-              gradient: SweepSteps(
-                // softness: 0.00024,
-                softness: 0,
-                colors: [
-                  Colors.blue,
-                  Colors.red,
-                  Colors.green,
-                  Colors.green,
-                  Colors.yellow
-                ],
-              ),
-            ),
-            child: SizedBox(width: w, height: h),
           ),
         ],
       ),
@@ -220,8 +171,9 @@ class _TestFoilState extends State<TestFoil> {
 
   @override
   Widget build(BuildContext context) {
-    final gradient = LinearSteps(
-      // center: Alignment.topCenter,
+    // final gradient = LinearSteps(
+    final gradient = RadialSteps(
+      center: Alignment.topLeft,
       // softness: 0.05,
       colors: [
         Colors.cyan,
@@ -233,13 +185,16 @@ class _TestFoilState extends State<TestFoil> {
         Colors.amber,
         Colors.red[300]!,
       ],
+      // begin: Alignment.topLeft,
+      // end: Alignment.bottomLeft,
+
       // focal: Alignment.center,
       // stops: [0, 0.15, 0.75, 0.85],
     );
     final unwrappedGradient =
         //
         // LinearGradient(
-        SweepSteps(
+        SweepGradient(
       // RadialGradient(
       // softness: 0.1,
       center: Alignment.topCenter,
@@ -256,6 +211,24 @@ class _TestFoilState extends State<TestFoil> {
       // stops: [0.15, 0.75, 0.85, 1.0],
     );
 
+    // final gradient = RadialSteps(
+    //   center: Alignment.topCenter,
+    //   colors: [
+    //     Colors.cyan,
+    //     Colors.blue[900]!,
+    //     Colors.pink,
+    //     Colors.red[900]!,
+    //     Colors.lightGreen,
+    //     Colors.green[900]!,
+    //     Colors.amber,
+    //     Colors.red[300]!,
+    //   ],
+    // );
+    // final unwrappedGradient = IntermediateGradient(
+    //     gradient.runtimeType,
+    //     GradientPacket(gradient, gradient, 0),
+    //     PrimitiveGradient.from(gradient));
+
     return SizedBox(
       width: MediaQuery.of(context).size.width,
       height: MediaQuery.of(context).size.height,
@@ -269,13 +242,9 @@ class _TestFoilState extends State<TestFoil> {
               duration: const Duration(milliseconds: 1500),
               speed: const Duration(milliseconds: 2500),
               curve: Curves.elasticOut,
-              // gradient: steps,
-              // gradient: LinearSteps2(
               gradient: gradient,
+              // gradient: unwrappedGradient,
               unwrappedGradient: unwrappedGradient,
-              // unwrappedGradient: NillGradients.nillify(RadialSteps2),
-              // unwrappedGradient:
-              //     steps.copyWith(colors: steps.colors.reversed.toList()),
               child: const DecoratedBox(
                   decoration: BoxDecoration(color: Colors.white)),
             ),

@@ -55,8 +55,8 @@ abstract class Steps extends Gradient {
     required List<Color> colors,
     List<double>? stops,
     GradientTransform? transform,
-  })  : _colors = colors,
-        _stops = stops,
+  }) :
+        // stops = stops,
         super(
           colors: colors,
           stops: stops,
@@ -64,7 +64,7 @@ abstract class Steps extends Gradient {
         );
 
   /// An incredibly small `double` to provide as an `additive` for each second
-  /// entry when duplicating [_stops] for this `Steps`.
+  /// entry when duplicating [stops] for this `Steps`.
   ///
   /// A larger  `softness` has the effect of reducing the hard edge in-between
   /// each color in this `Steps`, making it more like its original [Gradient]
@@ -89,28 +89,29 @@ abstract class Steps extends Gradient {
   /// - This constructor's `stops` *should not* end with a `1.0`, as that will
   ///   be added automatically.
   final double softness;
-  final List<Color> _colors;
-  final List<double>? _stops;
 
-  /// See [_DuplicateColors].
-  @override
-  List<Color> get colors => _colors.isEmpty
-      ? const [
-          Color(0x00000000),
-          Color(0x00000000),
-        ]
-      : _colors;
+  // final List<double>? _stops;
+  // @override
+  // List<double>? get stops =>
+  //     List<double>.from(interpretStops(stops, colors.length + 1))
+  //       ..removeLast();
 
-  /// See [_DuplicateStops].
-  @override
-  List<double>? get stops => _stops;
+  List<Color> get steppedColors => ~colors;
 
-  /// Without a provided list of `stops`, a `Steps` will generate its own.
-  List<double> get _steppedStops => interpretStops(_stops, _colors) ^ softness
-    // ..removeLast()
-    // ..insert(0, 0.0);
-    ..removeAt(0)
-    ..add(1.0);
+  List<double> get steppedStops {
+    final _stops =
+        (List<double>.from(interpretStops(stops, colors.length + 1)));
+
+    /// If local `stops` is not null, above [interpretStops] will return
+    /// that exact value. In that case, we do not want to build a stop list
+    /// with an extra value and cut it off... just use the provided `stops`.
+    if (stops == null) _stops.removeLast();
+    return _stops ^ softness
+      // ..removeAt(0)
+      // ..add(1.0)
+      ..remove(0)
+      ..add(1.0);
+  }
 }
 
 class LinearSteps extends Steps {
@@ -133,22 +134,23 @@ class LinearSteps extends Steps {
   final TileMode tileMode;
 
   @override
-  ui.Shader createShader(ui.Rect rect, {ui.TextDirection? textDirection}) =>
-      LinearGradient(
-        colors: ~_colors,
-        stops: _steppedStops,
-        transform: transform,
-        begin: begin,
-        end: end,
-        tileMode: tileMode,
-      ).createShader(rect, textDirection: textDirection);
+  ui.Shader createShader(ui.Rect rect, {ui.TextDirection? textDirection}) {
+    return LinearGradient(
+      colors: steppedColors,
+      stops: steppedStops,
+      transform: transform,
+      begin: begin,
+      end: end,
+      tileMode: tileMode,
+    ).createShader(rect, textDirection: textDirection);
+  }
 
   /// Returns a new [LinearSteps] with its colors scaled by the given factor.
   /// Since the alpha channel is what receives the scale factor,
   /// `0.0` or less results in a gradient that is fully transparent.
   @override
   LinearSteps scale(double factor) => copyWith(
-        colors: _colors
+        colors: colors
             .map<Color>((Color color) => Color.lerp(null, color, factor)!)
             .toList(),
       );
@@ -187,8 +189,7 @@ class LinearSteps extends Steps {
     if (a == null && b == null) return null;
     if (a == null) return b!.scale(t);
     if (b == null) return a.scale(1.0 - t);
-    final interpolated = PrimitiveGradient.interpolateFrom(
-        a._colors, a._stops, b._colors, b._stops, t);
+    final interpolated = PrimitiveGradient.interpolateFrom(a, b, t);
     return LinearSteps(
       softness: ui.lerpDouble(a.softness, b.softness, t) ?? 0,
       colors: interpolated.colors,
@@ -215,9 +216,8 @@ class LinearSteps extends Steps {
   }) =>
       LinearSteps(
         softness: softness ?? this.softness,
-        colors: colors ?? _colors,
-        stops:
-            stops ?? (colors != null ? interpretStops(null, colors) : _stops),
+        colors: colors ?? this.colors,
+        stops: stops ?? this.stops,
         begin: begin ?? this.begin,
         end: end ?? this.end,
         tileMode: tileMode ?? this.tileMode,
@@ -230,8 +230,8 @@ class LinearSteps extends Steps {
     if (other.runtimeType != runtimeType) return false;
     return other is LinearSteps &&
         other.softness == softness &&
-        listEquals<Color>(other._colors, _colors) &&
-        listEquals<double>(other._stops, _stops) &&
+        listEquals<Color>(other.colors, colors) &&
+        listEquals<double>(other.stops, stops) &&
         other.tileMode == tileMode &&
         other.begin == begin &&
         other.end == end;
@@ -239,11 +239,11 @@ class LinearSteps extends Steps {
 
   @override
   int get hashCode => hashValues(
-      softness, hashList(_colors), hashList(_stops), tileMode, begin, end);
+      softness, hashList(colors), hashList(stops), tileMode, begin, end);
 
   @override
-  String toString() => '${objectRuntimeType(this, 'LinearSteps')}'
-      '($softness, resolved colors: $colors, resolved stops: $stops, '
+  String toString() => '${objectRuntimeType(this, 'LinearSteps')} ($softness, '
+      'resolved colors: $steppedColors, resolved stops: $steppedStops, '
       '$tileMode, $begin, $end)';
 }
 
@@ -274,8 +274,8 @@ class RadialSteps extends Steps {
   @override
   ui.Shader createShader(ui.Rect rect, {ui.TextDirection? textDirection}) =>
       RadialGradient(
-        colors: ~_colors,
-        stops: _steppedStops,
+        colors: steppedColors,
+        stops: steppedStops,
         transform: transform,
         center: center,
         radius: radius,
@@ -289,7 +289,7 @@ class RadialSteps extends Steps {
   /// `0.0` or less results in a gradient that is fully transparent.
   @override
   RadialSteps scale(double factor) => copyWith(
-        colors: _colors
+        colors: colors
             .map<Color>((Color color) => Color.lerp(null, color, factor)!)
             .toList(),
       );
@@ -327,8 +327,7 @@ class RadialSteps extends Steps {
     if (a == null && b == null) return null;
     if (a == null) return b!.scale(t);
     if (b == null) return a.scale(1.0 - t);
-    final interpolated = PrimitiveGradient.interpolateFrom(
-        a._colors, a._stops, b._colors, b._stops, t);
+    final interpolated = PrimitiveGradient.interpolateFrom(a, b, t);
     return RadialSteps(
       softness: ui.lerpDouble(a.softness, b.softness, t) ?? 0,
       colors: interpolated.colors,
@@ -360,9 +359,8 @@ class RadialSteps extends Steps {
   }) =>
       RadialSteps(
         softness: softness ?? this.softness,
-        colors: colors ?? _colors,
-        stops:
-            stops ?? (colors != null ? interpretStops(null, colors) : _stops),
+        colors: colors ?? this.colors,
+        stops: stops ?? this.stops,
         transform: transform ?? this.transform,
         tileMode: tileMode ?? this.tileMode,
         center: center ?? this.center,
@@ -378,8 +376,8 @@ class RadialSteps extends Steps {
           ? false
           : other is RadialSteps &&
               other.softness == softness &&
-              listEquals<Color>(other._colors, _colors) &&
-              listEquals<double>(other._stops, _stops) &&
+              listEquals<Color>(other.colors, colors) &&
+              listEquals<double>(other.stops, stops) &&
               other.tileMode == tileMode &&
               other.center == center &&
               other.radius == radius &&
@@ -387,7 +385,7 @@ class RadialSteps extends Steps {
               other.focalRadius == focalRadius;
 
   @override
-  int get hashCode => hashValues(softness, hashList(_colors), hashList(_stops),
+  int get hashCode => hashValues(softness, hashList(colors), hashList(stops),
       tileMode, center, radius, focal, focalRadius);
 
   @override
@@ -422,8 +420,8 @@ class SweepSteps extends Steps {
   @override
   Shader createShader(Rect rect, {TextDirection? textDirection}) =>
       SweepGradient(
-        colors: ~_colors,
-        stops: _steppedStops,
+        colors: steppedColors,
+        stops: steppedStops,
         transform: transform,
         tileMode: tileMode,
         center: center,
@@ -436,7 +434,7 @@ class SweepSteps extends Steps {
   /// `0.0` or less results in a gradient that is fully transparent.
   @override
   SweepSteps scale(double factor) => copyWith(
-        colors: _colors
+        colors: colors
             .map<Color>((Color color) => Color.lerp(null, color, factor)!)
             .toList(),
       );
@@ -473,8 +471,7 @@ class SweepSteps extends Steps {
     if (a == null && b == null) return null;
     if (a == null) return b!.scale(t);
     if (b == null) return a.scale(1.0 - t);
-    final interpolated = PrimitiveGradient.interpolateFrom(
-        a._colors, a._stops, b._colors, b._stops, t);
+    final interpolated = PrimitiveGradient.interpolateFrom(a, b, t);
     return SweepSteps(
       softness: ui.lerpDouble(a.softness, b.softness, t) ?? 0,
       colors: interpolated.colors,
@@ -503,9 +500,8 @@ class SweepSteps extends Steps {
   }) =>
       SweepSteps(
         softness: softness ?? this.softness,
-        colors: colors ?? _colors,
-        stops:
-            stops ?? (colors != null ? interpretStops(null, colors) : _stops),
+        colors: colors ?? this.colors,
+        stops: stops ?? this.stops,
         center: center ?? this.center,
         startAngle: startAngle ?? this.startAngle,
         endAngle: endAngle ?? this.endAngle,
@@ -520,15 +516,15 @@ class SweepSteps extends Steps {
           ? false
           : other is SweepSteps &&
               other.softness == softness &&
-              listEquals<Color>(other._colors, _colors) &&
-              listEquals<double>(other._stops, _stops) &&
+              listEquals<Color>(other.colors, colors) &&
+              listEquals<double>(other.stops, stops) &&
               other.center == center &&
               other.startAngle == startAngle &&
               other.endAngle == endAngle &&
               other.tileMode == tileMode;
 
   @override
-  int get hashCode => hashValues(softness, hashList(_colors), hashList(_stops),
+  int get hashCode => hashValues(softness, hashList(colors), hashList(stops),
       tileMode, center, startAngle, endAngle);
 
   @override
