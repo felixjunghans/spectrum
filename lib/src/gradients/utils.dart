@@ -21,6 +21,61 @@ import 'steps.dart';
 import 'steps_shaded.dart';
 import 'tween.dart';
 
+/// {@template GradientCopyWith}
+/// Provision of a function type defintion for the purpose of allowing
+/// the override of this package's default `copyWith()` method.
+///
+/// The default `GradientCopyWith` for this package is [spectrumCopyWith], a
+/// wrapper for [GradientUtils] extension method `Gradient.copyWith`.
+///
+/// Imagine for a a bespoke `Gradient` type from a source other than those
+/// recognized by this package, an overridden `GradientCopyWith` \
+/// (say like the one requested by [GradientTween._copyWith], itself forwarding
+/// that function to [IntermediateGradient._copyWith]) \
+/// could be used to ensure that the inner workings of the `Gradient`
+/// interpolation return back the correct, custom `Gradient`.
+///
+/// ---
+/// Such as:
+///
+///     Gradient customCopyWith(Gradient original, { List<Color>? colors, List<double>? stops, . . . /* optionals */ })
+///         => CustomGradient(
+///              colors: colors ?? original.colors,
+///              stops: stops ?? original.stops,
+///              . . . );
+/// ---
+///     final tween = GradientTween(
+///       begin: customGradient,
+///       end: differentCustomGradient,
+///       overrideCopyWith: customCopyWith);
+/// {@endtemplate}
+typedef GradientCopyWith = Gradient Function(
+  Gradient gradient, {
+  // Universal
+  List<Color>? colors,
+  List<double>? stops,
+  GradientTransform? transform,
+  TileMode? tileMode,
+  // Linear
+  AlignmentGeometry? begin,
+  AlignmentGeometry? end,
+  // Radial or Sweep
+  AlignmentGeometry? center,
+  // Radial
+  double? radius,
+  AlignmentGeometry? focal,
+  double? focalRadius,
+  // Sweep
+  double? startAngle,
+  double? endAngle,
+  // Steps
+  double? softness,
+  // Shaded Steps
+  ColorArithmetic? shadeFunction,
+  num? shadeFactor,
+  double? distance,
+});
+
 /// Offers [copyWith] method to make duplicate `Gradient`s.
 extension LinearGradientUtils on LinearGradient {
   /// 📋 Returns a new copy of this `LinearGradient` with any provided
@@ -93,62 +148,11 @@ extension SweepGradientUtils on SweepGradient {
       );
 }
 
-/// {@template GradientCopyWith}
-/// Provision of a function type defintion for the purpose of allowing
-/// the override of this package's default `copyWith()` method.
-///
-/// The default `GradientCopyWith` for this package is [spectrumCopyWith], a
-/// wrapper for [GradientUtils] extension method `Gradient.copyWith`.
-///
-/// Imagine for a a bespoke `Gradient` type from a source other than those
-/// recognized by this package, an overridden `GradientCopyWith` \
-/// (say like the one requested by [GradientTween._copyWith], itself forwarding
-/// that function to [IntermediateGradient._copyWith]) \
-/// could be used to ensure that the inner workings of the `Gradient`
-/// interpolation return back the correct, custom `Gradient`.
-///
-/// ---
-/// Such as:
-///
-///     Gradient customCopyWith(Gradient original, { List<Color>? colors, List<double>? stops, . . . /* optionals */ })
-///         => CustomGradient(
-///              colors: colors ?? original.colors,
-///              stops: stops ?? original.stops,
-///              . . . );
-/// ---
-///     final tween = GradientTween(
-///       begin: customGradient,
-///       end: differentCustomGradient,
-///       overrideCopyWith: customCopyWith);
-/// {@endtemplate}
-typedef GradientCopyWith = Gradient Function(
-  Gradient gradient, {
-  // Universal
-  List<Color>? colors,
-  List<double>? stops,
-  GradientTransform? transform,
-  TileMode? tileMode,
-  // Linear
-  AlignmentGeometry? begin,
-  AlignmentGeometry? end,
-  // Radial or Sweep
-  AlignmentGeometry? center,
-  // Radial
-  double? radius,
-  AlignmentGeometry? focal,
-  double? focalRadius,
-  // Sweep
-  double? startAngle,
-  double? endAngle,
-  // Steps
-  double? softness,
-  // Shaded Steps
-  ColorArithmetic? shadeFunction,
-  num? shadeFactor,
-  double? distance,
-});
-
-/// Offers [copyWith] method to make duplicate `Gradient`s.
+/// Offers [copyWith] method to make duplicate `Gradient`s as well as global
+/// getters for any [Gradient] with specific fallbacks; [reversed] to
+/// easily return a `Gradient` with its colors reversed; and [animate], as a
+/// shortcut to provide `this` [Gradient] as an [AnimatedGradient]'s source
+/// and return the [AnimatedGradient.observe] output.
 extension GradientUtils on Gradient {
   /// Returns a copy of this `Gradient` with its `List<Color>` [colors] reversed
   /// as well as any potential stops.

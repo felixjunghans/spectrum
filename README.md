@@ -7,7 +7,7 @@
 
 <br />
 
-<!-- [![Header image](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/img/_small.gif)](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/img/.gif 'Click for full size') -->
+[![spectrum header image](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/img/spectrum_50.gif)](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/img/spectrum.gif 'Click for full size')
 
 A rainbow of `Color` and `Gradient` utilities such as [`GradientTween`](https://pub.dev/documentation/spectrum/latest/spectrum/GradientTween-class.html),
 gradient [`copyWith()`](https://pub.dev/documentation/spectrum/latest/spectrum/GradientUtils/copyWith.html)
@@ -19,7 +19,7 @@ and more!
 
 ## 📚 Table of Contents
 
-[spectrum](#spectrum)
+[![spectrum header](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/img/spectrum_15.gif)](#spectrum)
 
   1. 🌊 [Gradients](#-gradients 'Part I')
      1. 💫 [Interpolation](#-interpolation 'GradientTweens & bespoke IntermediateGradients')
@@ -50,13 +50,14 @@ This package provides full bespoke [`IntermediateGradient`](https://pub.dev/docu
 for truly smooth and eye-popping gradient animations between dissimilar gradient
 types!
 
-[![Incredibly beautiful GradientTweens with IntermediateGradients](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/img/tween_small.gif)](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/img/tween.gif 'Click for full size | Incredibly beautiful GradientTweens with IntermediateGradients')
+[![Incredibly beautiful GradientTweens with IntermediateGradients (accelerometer-translation by package:xl)](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/img/tween_small.gif)](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/img/tween.gif 'Click for full size | Incredibly beautiful GradientTweens with IntermediateGradients (accelerometer-translation by package:xl)')
 
 The interpolated `Gradient` is obtained via [`GradientTween.evaluate(Animation animation)`](https://pub.dev/documentation/spectrum/latest/spectrum/GradientTween-class.html)
 or `transform(double t)`.
 
-Until better `List` interpolation is implemented, feel free to experiment with
-`isAgressive`.
+> 💡 \
+> Until better `List` interpolation is implemented, feel free to experiment with
+> `isAgressive`.
 
 <div style='text-align:right'><a href='#-table-of-contents' title='Table of Contents'>📚</a></div>
 
@@ -83,40 +84,33 @@ hard edge between colors. A low-DPI screen would benefit from a (still,
 incredibly small) `softness` to provide as an additive for each second entry
 when duplicating stops.
 
-A larger  `softness` has the effect of making `Steps` more like their original
-`Gradient` counterpart.
+> Imagine `Steps.stops` is `[0.0, 0.3, 0.8]`. Providing a `softness` of `0.001`,
+> the effective, resolved stops for this gradient is now:
+> `[0.0, 0.001, 0.3, 0.3001, 0.8, 0.8001]`.
 
-[![Animation showing transition from Steps.softness == 0 to some greater value then transitioning back](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/img/softness_small.gif)](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/img/softness.gif 'Click for full size | Animation showing transition from Steps.softness == 0 to some greater value then transitioning back')
-
-Imagine `Steps.stops` is `[0.0, 0.3, 0.8]`. Providing a `softness` of `0.001`,
-the effective, resolved stops for this gradient is now:
-`[0.0, 0.001, 0.3, 0.3001, 0.8, 0.8001]`.
+|                                                                                                                                                                                                                                                                                                                                                                                                         |                                                                                                                                                                                                   |
+| :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [![Animation showing transition from Steps.softness == 0 to some greater value then transitioning back](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/img/softness_small.gif)](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/img/softness.gif 'Click for full size \| Animation showing transition from Steps.softness == 0 to some greater value then transitioning back') | A larger  `softness` has the effect of making `Steps` more like their original `Gradient` counterpart. <br /><br /> The neighboring example transitions from `softness: 0.0` -> `softness: 0.14`. |
 
 #### 🕶️ Shaded Steps
 
 Now imagine *more* intrinsic color and stops math for a variety of
 self-elaborating gradients... something like `FooShadedSteps` may be born.
 
-Each of [`Linear`](https://pub.dev/documentation/spectrum/latest/spectrum/LinearShadedSteps-class.html),
-[`Radial`](https://pub.dev/documentation/spectrum/latest/spectrum/RadialShadedSteps-class.html),
-and [`Sweep`](https://pub.dev/documentation/spectrum/latest/spectrum/SweepShadedSteps-class.html)
-extends from the original `Steps` counterpart and overrides its [`steppedColors`](https://pub.dev/documentation/spectrum/latest/spectrum/Steps/steppedColors.html)
-& [`steppedStops`](https://pub.dev/documentation/spectrum/latest/spectrum/Steps/steppedColors.html)
-properties to actually *"quadruplicate"* these lists, optionally with a variety
-of customizable parameters (including the [function to perform the color shading](https://pub.dev/documentation/spectrum/latest/spectrum/LinearShadedSteps/shadeFunction.html)).
-
-[![LinearShadedSteps transitioning from a negative value to a positive value with \`LinearShadedSteps.shadeFunction\` defaulting with \`Shades.withWhite\`](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/img/shaded_steps_small.gif)](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/img/shaded_steps.gif 'Click for full size | LinearShadedSteps transitioning from a negative value to a positive value with \`LinearShadedSteps.shadeFunction\` defaulting with \`Shades.withWhite\`')
+|                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [![LinearShadedSteps transitioning from a negative value to a positive value with \`LinearShadedSteps.shadeFunction\` defaulting with \`Shades.withWhite\`](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/img/shaded_steps_small.gif)](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/img/shaded_steps.gif 'Click for full size \| LinearShadedSteps transitioning from a negative value to a positive value with \`LinearShadedSteps.shadeFunction\` defaulting with \`Shades.withWhite\`') | Each of [`Linear`](https://pub.dev/documentation/spectrum/latest/spectrum/LinearShadedSteps-class.html), [`Radial`](https://pub.dev/documentation/spectrum/latest/spectrum/RadialShadedSteps-class.html), and [`Sweep`](https://pub.dev/documentation/spectrum/latest/spectrum/SweepShadedSteps-class.html) extends from the original `Steps` counterpart and overrides its [`steppedColors`](https://pub.dev/documentation/spectrum/latest/spectrum/Steps/steppedColors.html) & [`steppedStops`](https://pub.dev/documentation/spectrum/latest/spectrum/Steps/steppedColors.html) properties to actually *"quadruplicate"* these lists, optionally with a variety of customizable parameters (including the [function to perform the color shading](https://pub.dev/documentation/spectrum/latest/spectrum/LinearShadedSteps/shadeFunction.html)). <br /><br /> The neighboring example is a `LinearShadedSteps` transitioning from a negative value to a positive value with `LinearShadedSteps.shadeFunction` defaulting with `Shades.withWhite`. |
 
 <div style='text-align:right'><a href='#-table-of-contents' title='Table of Contents'>📚</a></div>
 
 ### ⏰ Animation
 
-Provide an animation, like an `AnimationController` or an `animate()`d `Tween`,
-to an [`AnimatedGradient`](https://pub.dev/documentation/spectrum/latest/spectrum/AnimatedGradient-class.html)
+Provide an animation such as an `AnimationController` to an [`AnimatedGradient`](https://pub.dev/documentation/spectrum/latest/spectrum/AnimatedGradient-class.html)
 along with a gradient for which to alter the properties.
 
-| ![A Gradient, then supplied to a AnimatedGradient]() | Obtain the actual `Gradient`-type output by calling [`AnimatedGradient.observe`](https://pub.dev/documentation/spectrum/latest/spectrum/AnimatedGradient/observe.html) or by using the [`Gradient.animate(...)`](https://pub.dev/documentation/spectrum/latest/spectrum/GradientUtils/animate.html) convenience method, which inherently returns `observe`. |
-| :--------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+Obtain the actual `Gradient`-type output by calling [`AnimatedGradient.observe`](https://pub.dev/documentation/spectrum/latest/spectrum/AnimatedGradient/observe.html)
+or by using the [`Gradient.animate(...)`](https://pub.dev/documentation/spectrum/latest/spectrum/GradientUtils/animate.html)
+convenience method, which inherently returns `observe`.
 
 Of course you may provide a number of `Tween`s for properties like [`Gradient.center`](https://pub.dev/documentation/spectrum/latest/spectrum/GradientUtils/center.html)
 or [`Gradient.begin`](https://pub.dev/documentation/spectrum/latest/spectrum/GradientUtils/begin.html),
@@ -157,10 +151,12 @@ final animatedGradient = AnimatedGradient(
   storyboard: {
     // GradientAnimation.none: null, // disables any animations
 
-    /// "colorArithmetic" expects a [ColorArithmetic].
+    /// "colorArithmetic" expects a [ColorArithmetic],
+    // such as a method from [Shades].
     GradientAnimation.colorArithmetic: Shades.withOpacity,
 
-    /// "stopsArithmetic" expects a [StopsArithmetic].
+    /// "stopsArithmetic" expects a [StopsArithmetic],
+    // such as a method from [Maths].
     GradientAnimation.stopsArithmetic: Maths.subtraction,
     // GradientAnimation.stopsArithmetic:Maths.addition,
     // GradientAnimation.stopsArithmetic:Maths.division,
@@ -201,7 +197,20 @@ This overriding function, which is expected to accept a large number of
 potential parameters, can be programmed to return your bespoke type.
 
 Provide this `GradientCopyWith` function as `GradientTween.overrideCopyWith`,
-for example.
+for example, such as:
+
+```dart
+Gradient customCopyWith(Gradient original, { List<Color>? colors, List<double>? stops, . . . /* remaining potential parameters */ })
+    => CustomGradient(
+         colors: colors ?? original.colors,
+         stops: stops ?? original.stops,
+         . . . );
+---
+final tween = GradientTween(
+  begin: customGradient,
+  end: differentCustomGradient,
+  overrideCopyWith: customCopyWith);
+```
 
 <br />
 
@@ -327,7 +336,7 @@ final color3a = Spectrum.materialAccent(
 
 > 💡 \
 > With extensions on `MaterialColor` and `MaterialAccentColor`, employ getter
-> `asList` and method `toList()` to convert these palettes into boiled-down
+> `asList` or method `toList()` to convert these palettes into boiled-down
 > `List<Color>`, such as:
 > 
 > ```dart
@@ -364,14 +373,9 @@ and a quantity of complements that you specify.
 
 > 💡 *Use `Color.generateComplements()` to create `Gradient.colors` in a cinch!*
 
-An example would be `red.generateComplements(3)`, which actually has a more
-efficient getter dubbed [`Color.complementTriad`](https://pub.dev/documentation/spectrum/latest/spectrum/SpectrumUtils/complementTriad.html),
-that would return `[red, green, blue]`.
-
-`red.generateComplements(2)`, more efficiently gotten as [`red.complementPair`](https://pub.dev/documentation/spectrum/latest/spectrum/SpectrumUtils/complementPair.html)
-would return red and its inversion: `[red, cyan]`.
-
-[![Color, Color.complementPair, Color.complementTriad](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/img/complements/123.gif)](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/img/complements/123.gif 'Click for full size | Color, Color.complementPair, Color.complementTriad')
+|                                                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [![Color, Color.complementPair, Color.complementTriad](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/img/complements/123.gif)](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/img/complements/123.gif 'Click for full size \| Color, Color.complementPair, Color.complementTriad') | An example would be `red.generateComplements(3)`, which actually has a more efficient getter dubbed [`Color.complementTriad`](https://pub.dev/documentation/spectrum/latest/spectrum/SpectrumUtils/complementTriad.html), that would return `[red, green, blue]`. It follows that `red.generateComplements(2)`, more efficiently gotten as [`red.complementPair`](https://pub.dev/documentation/spectrum/latest/spectrum/SpectrumUtils/complementPair.html) would return red and its inversion: `[red, cyan]`. |
 
 A call like `red.generateComplements(36)` returns a list beginning with red and
 progressing through another 35 colors that, on the whole, resemble a gently

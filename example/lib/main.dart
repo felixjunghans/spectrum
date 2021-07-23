@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
 import 'package:foil/foil.dart';
@@ -96,15 +94,15 @@ class _ExampleState extends State<Example> {
       body: PageView(
         physics: const BouncingScrollPhysics(),
         children: [
-          ///
-          Container(
-            decoration: BoxDecoration(
-              gradient: RadialShadedSteps(
-                colors: color.asMaterialColor.asList, // fast shading
-                radius: 1.0,
-              ),
-            ),
-          ),
+          // /// Fast shading
+          // Container(
+          //   decoration: BoxDecoration(
+          //     gradient: RadialShadedSteps(
+          //       colors: color.asMaterialColor.asList, // fast shading
+          //       radius: 1.0,
+          //     ),
+          //   ),
+          // ),
 
           /// Header "spectrum"
           const Header(),
@@ -226,7 +224,17 @@ Animatable<Color?> colors = TweenSequence<Color?>([
   ),
   TweenSequenceItem<Color?>(
     weight: 1.0,
-    tween: ColorTween(begin: Colors.yellow, end: Colors.red),
+    tween: ColorTween(begin: Colors.lightBlue, end: Colors.purple),
+    // tween: Tween<Color>(begin: Colors.blue, end: Colors.green),
+  ),
+  TweenSequenceItem<Color?>(
+    weight: 1.0,
+    tween: ColorTween(begin: Colors.purple, end: Colors.amber),
+    // tween: Tween<Color>(begin: Colors.green, end: Colors.yellow),
+  ),
+  TweenSequenceItem<Color?>(
+    weight: 1.0,
+    tween: ColorTween(begin: Colors.amber, end: Colors.red),
     // tween: Tween<Color>(begin: Colors.yellow, end: Colors.red),
   ),
 ]);
@@ -246,7 +254,7 @@ class _HeaderState extends State<Header> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 5),
       vsync: this,
     )
       ..addListener(() => setState(() {}))
@@ -265,26 +273,44 @@ class _HeaderState extends State<Header> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     return FittedBox(
       child: ShaderMask(
+        // shaderCallback: (bounds) => GradientTween(
+        //   begin: RadialShadedSteps(
+        //     // colors: _color.value!.generateComplements(10),
+        //     colors: _color.value!.asMaterialColor.asList,
+        //     radius: 4,
+        //     shadeFactor: 200,
+        //   ),
+        //   end: LinearGradient(
+        //     colors: _color.value!.withWhite(50).generateComplements(6),
+        //   ),
+        //   isAgressive: false,
+        // ).evaluate(_controller)!.createShader(bounds),
         shaderCallback: (bounds) => AnimatedGradient(
           controller: _controller,
-          gradient: RadialShadedSteps(
-            colors: _color.value!
-                .generateComplements(math.Random().nextInt(10) + 1),
-            // colors: _color.value!.asMaterialColor.asList,
-            radius: 5,
-          ),
+          gradient: GradientTween(
+            begin: RadialShadedSteps(
+              // colors: _color.value!.generateComplements(10),
+              colors: _color.value!.asMaterialColor.asList,
+              radius: 4,
+              shadeFactor: 200,
+            ),
+            end: LinearGradient(
+              colors: _color.value!.withWhite(50).generateComplements(6),
+            ),
+            isAgressive: false,
+          ).evaluate(_controller)!,
           storyboard: {
-            GradientAnimation.colorArithmetic: Shades.withBlack,
-            GradientAnimation.stopsArithmetic: Maths.multiplication,
+            // GradientAnimation.colorArithmetic: Shades.withOpacity,
+            // GradientAnimation.stopsArithmetic: Maths.addition,
             GradientAnimation.tweenSpec: {
               GradientProperty.center: Tween<AlignmentGeometry?>(
                 begin: const Alignment(-0.75, -0.75),
-                end: const Alignment(0.75, 0.75),
+                end: const Alignment(5.75, 5.75),
               ),
-              GradientProperty.distance: Tween<double>(
-                begin: 0,
-                end: 1,
-              ),
+              // GradientProperty.distance: Tween<double>(
+              //   begin: 0,
+              //   end: 1,
+              // ),
             }
           },
         ).observe.createShader(bounds),
