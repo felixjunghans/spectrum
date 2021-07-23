@@ -8,60 +8,39 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart' show listEquals, objectRuntimeType;
 
-import '../common.dart';
-
-extension _DuplicateColors on List<Color> {
-  /// Takes a `List<Color>` and returns a list with duplicated entries.
-  List<Color> operator ~() =>
-      fold([], (List<Color> list, Color entry) => list..addAll([entry, entry]));
-}
-
-extension _DuplicateStops on List<double> {
-  /// Takes a `List<double>` and returns a list with duplicated entries where
-  /// every duplicated entry may optionally have an [additive] added to it.
-  List<double> operator ^(double additive) => fold(
-      [],
-      (List<double> list, double entry) =>
-          list..addAll([entry, entry + additive]));
-}
+import 'common.dart';
+import 'interpolation.dart';
+import 'steps_operators.dart';
 
 /// These `Steps` work a little bit differently than standard `Gradient`s.
 ///
-/// The [Gradient.colors] & [Gradient.stops] fields are overridden
-/// with getters that duplicate these `List`s.
-///
-/// But while [colors] is a duplicated [Gradient.colors], these [stops], if
-/// provided manually instead of using interpretation, are expected to follow
-/// a simple, but important format:
-/// - This constructor's `stops` *should* start with a `0.0`, as after
-///   list duplication, the second entry in the list will be eliminated.
-/// - This constructor's `stops` *should not* end with a `1.0`, as that will
-///   be added automatically.
+/// The [Gradient.colors] & [Gradient.stops] properties are duplicated to
+/// create hard-edge transitions instead of smooth ones.
 abstract class Steps extends Gradient {
   /// These `Steps` work a little bit differently than standard `Gradient`s.
   ///
-  /// The [Gradient.colors] & [Gradient.stops] fields are overridden
-  /// with getters that duplicate these `List`s.
+  /// The [Gradient.colors] & [Gradient.stops] properties are duplicated to
+  /// create hard-edge transitions instead of smooth ones.
   ///
-  /// But while [colors] is a duplicated [Gradient.colors], these [stops], if
-  /// provided manually instead of using interpretation, are expected to follow
-  /// a simple, but important format:
-  /// - This constructor's `stops` *should* start with a `0.0`, as after
-  ///   list duplication, the second entry in the list will be eliminated.
-  /// - This constructor's `stops` *should not* end with a `1.0`, as that will
-  ///   be added automatically.
+  // But while [colors] is a duplicated [Gradient.colors], these [stops], if
+  // provided manually instead of using implication, are expected to follow
+  // a simple, but important format:
+  // - This constructor's `stops` *should* start with a `0.0`, as after
+  //   list duplication, the second entry in the list will be eliminated.
+  // - This constructor's `stops` *should not* end with a `1.0`, as that will
+  //   be added automatically.
+  ///
+  /// A larger [softness] makes this `FooSteps` more like a standard
+  /// `FooGradient`. Default is `0.0`. High-resolution displays are
+  /// well-suited for displaying the non-anti-aliased `Steps` formed when
+  /// `softness == 0.0`.
   const Steps({
     this.softness = 0.0,
     required List<Color> colors,
     List<double>? stops,
+    this.tileMode = TileMode.clamp,
     GradientTransform? transform,
-  }) :
-        // stops = stops,
-        super(
-          colors: colors,
-          stops: stops,
-          transform: transform,
-        );
+  }) : super(colors: colors, stops: stops, transform: transform);
 
   /// An incredibly small `double` to provide as an `additive` for each second
   /// entry when duplicating [stops] for this `Steps`.
@@ -73,7 +52,7 @@ abstract class Steps extends Gradient {
   /// Imagine [stops] is `[0.0, 0.3, 0.8]`*. Providing a `softness` of `0.001`,
   /// the effective, resolved [stops] for this `Gradient` is now:
   ///
-  /// `[0.0, 0.3, 0.3001, 0.8, 0.8001, 1.0]`.
+  /// `[0.0, 0.001, 0.3, 0.3001, 0.8, 0.8001]`.
   ///
   /// ## \* *Note*:
   /// These `Steps` work a little bit differently than standard `Gradient`s.
@@ -90,60 +69,102 @@ abstract class Steps extends Gradient {
   ///   be added automatically.
   final double softness;
 
-  // final List<double>? _stops;
-  // @override
-  // List<double>? get stops =>
-  //     List<double>.from(interpretStops(stops, colors.length + 1))
-  //       ..removeLast();
+  /// How these `Steps` should tile the plane beyond the region before its
+  /// starting stop and after its ending stop.
+  ///
+  /// For details, see [TileMode].
+  ///
+  /// ---
+  /// ![](https://flutter.github.io/assets-for-api-docs/assets/dart-ui/tile_mode_clamp_linear.png)
+  /// ![](https://flutter.github.io/assets-for-api-docs/assets/dart-ui/tile_mode_mirror_linear.png)
+  /// ![](https://flutter.github.io/assets-for-api-docs/assets/dart-ui/tile_mode_repeated_linear.png)
+  /// ---
+  /// ![](https://flutter.github.io/assets-for-api-docs/assets/dart-ui/tile_mode_clamp_radial.png)
+  /// ![](https://flutter.github.io/assets-for-api-docs/assets/dart-ui/tile_mode_mirror_radial.png)
+  /// ![](https://flutter.github.io/assets-for-api-docs/assets/dart-ui/tile_mode_repeated_radial.png)
+  ///
+  /// ![](https://flutter.github.io/assets-for-api-docs/assets/dart-ui/tile_mode_clamp_radialWithFocal.png)
+  /// ![](https://flutter.github.io/assets-for-api-docs/assets/dart-ui/tile_mode_mirror_radialWithFocal.png)
+  /// ![](https://flutter.github.io/assets-for-api-docs/assets/dart-ui/tile_mode_repeated_radialWithFocal.png)
+  /// ---
+  /// ![](https://flutter.github.io/assets-for-api-docs/assets/dart-ui/tile_mode_clamp_sweep.png)
+  /// ![](https://flutter.github.io/assets-for-api-docs/assets/dart-ui/tile_mode_mirror_sweep.png)
+  /// ![](https://flutter.github.io/assets-for-api-docs/assets/dart-ui/tile_mode_repeated_sweep.png)
+  final TileMode tileMode;
 
+  /// A duplicated list of [colors] by [CopyColors].
   List<Color> get steppedColors => ~colors;
 
+  /// A duplicated list of [stops] (which may be `null`, in which case
+  /// [stopsOrImplied] is employed).
+  ///
+  /// An optional [softness] is used during the list entry duplication process
+  /// to make every duplicate just *slightly* larger than the original entry.
   List<double> get steppedStops {
     final _stops =
-        (List<double>.from(interpretStops(stops, colors.length + 1)));
-
-    /// If local `stops` is not null, above [interpretStops] will return
-    /// that exact value. In that case, we do not want to build a stop list
-    /// with an extra value and cut it off... just use the provided `stops`.
+        (List<double>.from(stopsOrImplied(stops, colors.length + 1)));
+    // If local `stops` is not null, above [stopsOrImplied] will return
+    // that exact value. In that case, we do not want to build a stop list
+    // with an extra value and cut it off... just use the provided `stops`.
     if (stops == null) _stops.removeLast();
     return _stops ^ softness
-      // ..removeAt(0)
-      // ..add(1.0)
-      ..remove(0)
+      ..removeAt(0)
       ..add(1.0);
   }
+
+  /// Resolve these `Steps` to its smooth `Gradient` counterpart.
+  Gradient get asGradient;
+
+  /// Resolve these `Steps` to its smooth `Gradient` counterpart, then use that
+  /// gradient's `createShader()` method.
+  @override
+  ui.Shader createShader(ui.Rect rect, {ui.TextDirection? textDirection}) =>
+      asGradient.createShader(rect, textDirection: textDirection);
 }
 
+/// Construct a [new LinearSteps] that progresses from one color to the next in
+/// hard steps as opposed to smooth transitions by way of duplicating colors and
+/// duplicating stops.
+///
+/// See [Steps] for more information.
 class LinearSteps extends Steps {
+  /// A [Steps] gradient differs from a standard [Gradient] in its progression
+  /// from one color to the next. Instead of smoothly transitioning between
+  /// colors, `Steps` have hard edges created by duplicated colors and
+  /// duplicating stops.
+  ///
+  /// A larger [softness] makes this `LinearSteps` more like a standard
+  /// `LinearGradient`. Default is `0.001`. High-resolution displays are
+  /// well-suited for displaying the non-anti-aliased `Steps` formed when
+  /// `softness == 0.0`.
+  ///
+  /// See [Steps] for more information.
   const LinearSteps({
     double softness = 0.001,
     required List<Color> colors,
     List<double>? stops,
     this.begin = Alignment.centerLeft,
     this.end = Alignment.centerRight,
-    this.tileMode = TileMode.clamp,
+    TileMode tileMode = TileMode.clamp,
     GradientTransform? transform,
   }) : super(
           softness: softness,
           colors: colors,
           stops: stops,
+          tileMode: tileMode,
           transform: transform,
         );
 
   final AlignmentGeometry begin, end;
-  final TileMode tileMode;
 
   @override
-  ui.Shader createShader(ui.Rect rect, {ui.TextDirection? textDirection}) {
-    return LinearGradient(
+  LinearGradient get asGradient => LinearGradient(
       colors: steppedColors,
       stops: steppedStops,
-      transform: transform,
       begin: begin,
       end: end,
       tileMode: tileMode,
-    ).createShader(rect, textDirection: textDirection);
-  }
+      transform: transform);
 
   /// Returns a new [LinearSteps] with its colors scaled by the given factor.
   /// Since the alpha channel is what receives the scale factor,
@@ -171,9 +192,6 @@ class LinearSteps extends Steps {
   /// from a `LinearSteps` that matches the other in [begin], [end], [stops] and
   /// [tileMode] and with the same [colors] but transparent (using [scale]).
   ///
-  /// If neither `LinearSteps` is `null`,
-  /// they must have the same number of [colors].
-  ///
   /// The `t` argument represents a position on the timeline, with `0.0` meaning
   /// that the interpolation has not started, returning `a` (or something
   /// equivalent to `a`), `1.0` meaning that the interpolation has finished,
@@ -189,9 +207,19 @@ class LinearSteps extends Steps {
     if (a == null && b == null) return null;
     if (a == null) return b!.scale(t);
     if (b == null) return a.scale(1.0 - t);
-    final interpolated = PrimitiveGradient.interpolateFrom(a, b, t);
+    // final stretched = PrimitiveGradient.fromStretchLerp(a, b, t);
+    // final interpolated = PrimitiveGradient.byProgressiveMerge(
+    //     t < 0.5 ? PrimitiveGradient.from(a) : stretched,
+    //     t < 0.5 ? stretched : PrimitiveGradient.from(b),
+    //     // t < 0.5 ? t * 2 : (t - 0.5) * 2);
+    //     t);
+
+    final interpolated = PrimitiveGradient.byCombination(a, b, t);
+    // final interpolated = PrimitiveGradient.fromStretchLerp(a, b, t);
+    // final interpolated = PrimitiveGradient.byProgressiveMerge(
+    // PrimitiveGradient.from(a), PrimitiveGradient.from(b), t);
     return LinearSteps(
-      softness: ui.lerpDouble(a.softness, b.softness, t) ?? 0,
+      softness: math.max(0.0, ui.lerpDouble(a.softness, b.softness, t)!),
       colors: interpolated.colors,
       stops: interpolated.stops,
       // TODO: Interpolate Matrix4 / GradientTransform
@@ -242,12 +270,30 @@ class LinearSteps extends Steps {
       softness, hashList(colors), hashList(stops), tileMode, begin, end);
 
   @override
-  String toString() => '${objectRuntimeType(this, 'LinearSteps')} ($softness, '
-      'resolved colors: $steppedColors, resolved stops: $steppedStops, '
-      '$tileMode, $begin, $end)';
+  String toString() =>
+      '${objectRuntimeType(this, 'LinearSteps')} (softness: $softness, '
+      '(softness: $softness, colors: $colors, stops: $stops, '
+      '$tileMode, begin: $begin, end: $end)';
+  // '\nresolved colors: $steppedColors, resolved stops: $steppedStops';
 }
 
+/// Construct a [new RadialSteps] that progresses from one color to the next in
+/// hard steps as opposed to smooth transitions by way of duplicating colors and
+/// duplicating stops.
+///
+/// See [Steps] for more information.
 class RadialSteps extends Steps {
+  /// A [Steps] gradient differs from a standard [Gradient] in its progression
+  /// from one color to the next. Instead of smoothly transitioning between
+  /// colors, `Steps` have hard edges created by duplicated colors and
+  /// duplicating stops.
+  ///
+  /// A larger [softness] makes this `RadialSteps` more like a standard
+  /// `RadialGradient`. Default is `0.0025`. High-resolution displays are
+  /// well-suited for displaying the non-anti-aliased `Steps` formed when
+  /// `softness == 0.0`.
+  ///
+  /// See [Steps] for more information.
   const RadialSteps({
     double softness = 0.0025,
     required List<Color> colors,
@@ -256,12 +302,13 @@ class RadialSteps extends Steps {
     this.radius = 0.5,
     this.focal,
     this.focalRadius = 0.0,
-    this.tileMode = TileMode.clamp,
+    TileMode tileMode = TileMode.clamp,
     GradientTransform? transform,
   }) : super(
           softness: softness,
           colors: colors,
           stops: stops,
+          tileMode: tileMode,
           transform: transform,
         );
 
@@ -269,20 +316,17 @@ class RadialSteps extends Steps {
   final double radius;
   final AlignmentGeometry? focal;
   final double focalRadius;
-  final TileMode tileMode;
 
   @override
-  ui.Shader createShader(ui.Rect rect, {ui.TextDirection? textDirection}) =>
-      RadialGradient(
-        colors: steppedColors,
-        stops: steppedStops,
-        transform: transform,
-        center: center,
-        radius: radius,
-        focal: focal,
-        focalRadius: focalRadius,
-        tileMode: tileMode,
-      ).createShader(rect, textDirection: textDirection);
+  RadialGradient get asGradient => RadialGradient(
+      colors: steppedColors,
+      stops: steppedStops,
+      center: center,
+      radius: radius,
+      focal: focal,
+      focalRadius: focalRadius,
+      tileMode: tileMode,
+      transform: transform);
 
   /// Returns a new [RadialSteps] with its colors scaled by the given factor.
   /// Since the alpha channel is what receives the scale factor,
@@ -310,8 +354,6 @@ class RadialSteps extends Steps {
   /// a gradient that matches the other gradient in [center], [radius], [stops]
   /// and [tileMode] and with the same [colors] but transparent (using [scale]).
   ///
-  /// If neither gradient is null, they must have the same number of [colors].
-  ///
   /// The `t` argument represents a position on the timeline, with 0.0 meaning
   /// that the interpolation has not started, returning `a` (or something
   /// equivalent to `a`), 1.0 meaning that the interpolation has finished,
@@ -327,9 +369,19 @@ class RadialSteps extends Steps {
     if (a == null && b == null) return null;
     if (a == null) return b!.scale(t);
     if (b == null) return a.scale(1.0 - t);
-    final interpolated = PrimitiveGradient.interpolateFrom(a, b, t);
+    // final stretched = PrimitiveGradient.fromStretchLerp(a, b, t);
+    // final interpolated = PrimitiveGradient.byProgressiveMerge(
+    //     t < 0.5 ? PrimitiveGradient.from(a) : stretched,
+    //     t < 0.5 ? stretched : PrimitiveGradient.from(b),
+    //     // t < 0.5 ? t * 2 : (t - 0.5) * 2);
+    //     t);
+
+    final interpolated = PrimitiveGradient.byCombination(a, b, t);
+    // final interpolated = PrimitiveGradient.fromStretchLerp(a, b, t);
+    // final interpolated = PrimitiveGradient.byProgressiveMerge(
+    // PrimitiveGradient.from(a), PrimitiveGradient.from(b), t);
     return RadialSteps(
-      softness: ui.lerpDouble(a.softness, b.softness, t) ?? 0,
+      softness: math.max(0.0, ui.lerpDouble(a.softness, b.softness, t)!),
       colors: interpolated.colors,
       stops: interpolated.stops,
       // TODO: Interpolate Matrix4 / GradientTransform
@@ -390,16 +442,34 @@ class RadialSteps extends Steps {
 
   @override
   String toString() => '${objectRuntimeType(this, 'RadialSteps')}'
-      '($softness, resolved colors: $colors, resolved stops: $stops, '
-      '$tileMode, $center, $radius, $focal, $focalRadius)';
+      '(softness: $softness, colors: $colors, stops: $stops, '
+      '$tileMode, center: $center, radius: $radius, '
+      'focal: $focal, focalRadius: $focalRadius)';
+  // '\nresolved colors: $steppedColors, resolved stops: $steppedStops';
 }
 
+/// Construct a [new SweepSteps] that progresses from one color to the next in
+/// hard steps as opposed to smooth transitions by way of duplicating colors and
+/// duplicating stops.
+///
+/// See [Steps] for more information.
 class SweepSteps extends Steps {
+  /// A [Steps] gradient differs from a standard [Gradient] in its progression
+  /// from one color to the next. Instead of smoothly transitioning between
+  /// colors, `Steps` have hard edges created by duplicated colors and
+  /// duplicating stops.
+  ///
+  /// A larger [softness] makes this `SweepSteps` more like a standard
+  /// `SweepGradient`. Default is `0.0`. High-resolution displays are
+  /// well-suited for displaying the non-anti-aliased `Steps` formed when
+  /// `softness == 0.0`.
+  ///
+  /// See [Steps] for more information.
   const SweepSteps({
     double softness = 0.0,
     required List<Color> colors,
     List<double>? stops,
-    this.tileMode = TileMode.clamp,
+    TileMode tileMode = TileMode.clamp,
     this.center = Alignment.center,
     this.startAngle = 0.0,
     this.endAngle = math.pi * 2,
@@ -408,26 +478,23 @@ class SweepSteps extends Steps {
           softness: softness,
           colors: colors,
           stops: stops,
+          tileMode: tileMode,
           transform: transform,
         );
 
-  final TileMode tileMode;
   final AlignmentGeometry center;
   final double startAngle;
   final double endAngle;
 
-  /// Creates a `ui.Gradient.sweep` with duplicated `colors` and `stops`.
   @override
-  Shader createShader(Rect rect, {TextDirection? textDirection}) =>
-      SweepGradient(
-        colors: steppedColors,
-        stops: steppedStops,
-        transform: transform,
-        tileMode: tileMode,
-        center: center,
-        startAngle: startAngle,
-        endAngle: endAngle,
-      ).createShader(rect, textDirection: textDirection);
+  SweepGradient get asGradient => SweepGradient(
+      colors: steppedColors,
+      stops: steppedStops,
+      center: center,
+      startAngle: startAngle,
+      endAngle: endAngle,
+      tileMode: tileMode,
+      transform: transform);
 
   /// Returns a new [SweepSteps] with its colors scaled by the given factor.
   /// Since the alpha channel is what receives the scale factor,
@@ -454,8 +521,6 @@ class SweepSteps extends Steps {
   /// If either gradient is null, then the non-null gradient is returned with
   /// its color scaled in the same way as the [scale] function.
   ///
-  /// If neither gradient is null, they must have the same number of [colors].
-  ///
   /// The `t` argument represents a position on the timeline, with 0.0 meaning
   /// that the interpolation has not started, returning `a` (or something
   /// equivalent to `a`), 1.0 meaning that the interpolation has finished,
@@ -471,9 +536,19 @@ class SweepSteps extends Steps {
     if (a == null && b == null) return null;
     if (a == null) return b!.scale(t);
     if (b == null) return a.scale(1.0 - t);
-    final interpolated = PrimitiveGradient.interpolateFrom(a, b, t);
+    // final stretched = PrimitiveGradient.fromStretchLerp(a, b, t);
+    // final interpolated = PrimitiveGradient.byProgressiveMerge(
+    //     t < 0.5 ? PrimitiveGradient.from(a) : stretched,
+    //     t < 0.5 ? stretched : PrimitiveGradient.from(b),
+    //     // t < 0.5 ? t * 2 : (t - 0.5) * 2);
+    //     t);
+
+    final interpolated = PrimitiveGradient.byCombination(a, b, t);
+    // final interpolated = PrimitiveGradient.fromStretchLerp(a, b, t);
+    // final interpolated = PrimitiveGradient.byProgressiveMerge(
+    // PrimitiveGradient.from(a), PrimitiveGradient.from(b), t);
     return SweepSteps(
-      softness: ui.lerpDouble(a.softness, b.softness, t) ?? 0,
+      softness: math.max(0.0, ui.lerpDouble(a.softness, b.softness, t)!),
       colors: interpolated.colors,
       stops: interpolated.stops,
       // TODO: Interpolate Matrix4 / GradientTransform
@@ -529,6 +604,8 @@ class SweepSteps extends Steps {
 
   @override
   String toString() => '${objectRuntimeType(this, 'SweepSteps')}'
-      '($softness, resolved colors: $colors, resolved stops: $stops, '
-      '$tileMode, $center, $startAngle, $endAngle)';
+      '(softness: $softness, colors: $colors, stops: $stops, '
+      '$tileMode, center: $center, '
+      'startAngle: $startAngle, endAngle: $endAngle)';
+  // '\nresolved colors: $steppedColors, resolved stops: $steppedStops';
 }

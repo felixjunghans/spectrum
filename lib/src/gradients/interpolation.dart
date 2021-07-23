@@ -1,50 +1,122 @@
+/// A [PrimitiveGradient] and [GradientPacket] comprise the core of `Gradient`
+/// interpolation. A [GradientTween] utilizes an [IntermediateGradient] during
+/// the interpolation process; and a `PrimitiveGradient` and `GradientPacket`
+/// construct the `IntermediateGradient`.
 ///
+/// Beyond these two classes, provides functions [_mergeListDouble] and
+/// [_mergeListColor] for lerping between lists of dissimilar length.
+///
+/// Through the variety of named constructors for [PrimitiveGradient], some
+/// combination of interpolation is employed to achieve the required results.
 library spectrum;
 
-// import 'dart:collection' as collection;
+import 'dart:collection' as collection;
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
-import '../common.dart';
-import '../gradients/steps.dart';
+import 'common.dart';
+import 'models.dart';
+import 'steps.dart';
+import 'steps_shaded.dart';
+import 'tween.dart';
 
-/// Receiving a potentially `null` list of [stops] and a concrete list of
-/// [colorCount] (which may be empty):
-/// - immediately return [stops] if non-`null`
-/// - if [colorCount] is empty, return an empty list to match
-/// - return an interpreted list of stops by creating a stop entry `s` for every
-///   entry in [colorCount] as `s / colors.length` beginning at `s == 1`.
-///   - resultant list will *not* begin with a `0` but *will* end in `1`
-List<double> interpretStops(List<double>? stops, int colorCount) {
-  assert(colorCount > 1);
-  if (stops != null) return stops;
-  // final len = colors.length;
-  // var impliedStops = <double>[];
-  // for (var s = 0; s < len; s++) {
-  //   impliedStops.add(s / len);
-  // }
-  // return impliedStops;
-
-  final separation = 1.0 / (colorCount - 1);
-  return List<double>.generate(
-    colorCount,
-    (int index) => index * separation,
-    growable: false,
-  );
+/// Incorporate a `List<double>` [b] into list [a] over a period of time ranging
+/// from [t] == `0.0 .. 1.0`.
+///
+/// When `t` is `0.0`, the list will resemble [a]. \
+/// When `t` is `1.0`, the list will resemble [b].
+///
+/// The entries that lie within the range of "common length" are
+/// [Color.lerp]ed from `a` -> `b` as `t` progresses `0.0` -> `1.0`.
+///
+/// As `t` grows, extra entries (considering the two `List`'s common length)
+/// are progressively dropped from or added to the resultant list considering
+/// their source is the begin or end list, `a` or `b`.
+//
+// ---
+// - When `t == 0.0` *all extra entries* from [a] are present in returned list.
+// - When `t == 1.0` *all extra entries* from [b] are present in return.
+// ---
+// - When `t == 1.0` *all extra entries* from [a] are absent from return.
+// - When `t == 0.0` *all extra entries* from [b] are absent from return.
+List<double> _mergeListDouble(
+  List<double>? a,
+  List<double>? b,
+  double t, {
+  bool shouldSort = true,
+}) {
+  a ??= <double>[];
+  b ??= <double>[];
+  final commonLength = math.min(a.length, b.length);
+  final result = <double>[
+    for (int i = 0; i < commonLength; i++) ui.lerpDouble(a[i], b[i], t)!,
+    for (int i = commonLength; i < a.length && t < i / a.length / 100; i++)
+      // for (int i = commonLength; i < a.length; i++)
+      // ui.lerpDouble(a[i] * (1.0 - t), 1.0, t)!,
+      // ui.lerpDouble(a[i], 0.0, t)!,
+      // ui.lerpDouble(b.last, a[i], t < 0.5 ? (1.0 - t) * 2 : (1.0 - t) * 2)!,
+      ui.lerpDouble(b.last, a[i], 1.0 - t)!,
+    // ui.lerpDouble(a[i], b[(i / minLength).truncate()], t)!,
+    for (int i = commonLength; i < b.length && t > i / b.length / 100; i++)
+      // for (int i = commonLength; i < b.length; i++)
+      // ui.lerpDouble(b[i] * (t), 1.0, t)!,
+      // ui.lerpDouble(b[i], 0.0, t)!,
+      // ui.lerpDouble(a.last, b[i], t < 0.5 ? (t) * 2 : (1.0 - t) * 2)!,
+      // ui.lerpDouble(a.last, b[i], t)!,
+      ui.lerpDouble(1.0, b[i], t)!,
+    // ui.lerpDouble(b[i], a[(i / minLength).truncate()], t)!,
+  ];
+  if (shouldSort) result.sort();
+  return result;
 }
 
-// List<double> lerpList(List<double>? a, List<double>? b, double t) {
-//   a ??= <double>[];
-//   b ??= <double>[];
-//   final commonLength = math.min(a.length, b.length);
-//   return <double>[
-//     for (int i = 0; i < commonLength; i++) ui.lerpDouble(a[i], b[i], t)!,
-//     // if (t < 0.5)
-//     //   for (int i = commonLength; i < a.length; i++) a[i],
-//     // if (t > 0.5)
-//     //   for (int i = commonLength; i < b.length; i++) b[i],
-//   ];
-// }
+/// Incorporate a `List<Color>` [b] into list [a] over a period of time ranging
+/// from [t] == `0.0 .. 1.0`.
+///
+/// When `t` is `0.0`, the list will resemble [a]. \
+/// When `t` is `1.0`, the list will resemble [b].
+///
+/// The entries that lie within the range of "common length" are
+/// [ui.lerpDouble]d from `a` -> `b` as `t` progresses `0.0` -> `1.0`.
+///
+/// As `t` grows, extra entries (considering the two `List`'s common length)
+/// are progressively dropped from or added to the resultant list considering
+/// their source is the begin or end list, `a` or `b`.
+///
+/// ---
+/// - When `t == 0.0` *all extra entries* from [a] are present in returned list.
+/// - When `t == 1.0` *all extra entries* from [b] are present in return.
+/// ---
+/// - When `t == 1.0` *all extra entries* from [a] are absent from return.
+/// - When `t == 0.0` *all extra entries* from [b] are absent from return.
+///
+// ignore: unused_element
+List<Color> _mergeListColor(List<Color>? a, List<Color>? b, double t) {
+  if (a == null && b == null) return [Colors.transparent, Colors.transparent];
+  if (b == null) return a!;
+  if (a == null) return b;
+  final commonLength = math.min(a.length, b.length);
+
+  return <Color>[
+    for (int i = 0; i < commonLength; i++) Color.lerp(a[i], b[i], t)!,
+    // for (int i = commonLength; i < a.length; i++)
+    //   Color.lerp(a[i], b.last, t)!,
+    // for (int i = commonLength; i < b.length; i++)
+    //   Color.lerp(b[i], a.last, (1.0 - t))!,
+    for (int i = commonLength; i < a.length && t < i / a.length / 100; i++)
+      // for (int i = commonLength; i < a.length; i++)
+      // Color.lerp(null, a[i], 1.0 - t)!,
+      Color.lerp(null, b.last, 1.0 - t)!,
+    // Color.lerp(null, b[(i / commonLength).truncate()], 1.0 - t)!,
+    // a[i].withOpacity((1.0 - t).clamp(0.0, 1.0)),
+    for (int i = commonLength; i < b.length && t > i / b.length / 100; i++)
+      // for (int i = commonLength; i < b.length; i++)
+      // Color.lerp(b[i], null, 1.0 - t)!,
+      Color.lerp(b[i], a.last, 1.0 - t)!,
+    // Color.lerp(b[i], a[(i / commonLength).truncate()], 1.0 - t)!,
+    // b[i].withOpacity((t).clamp(0.0, 1.0)),
+  ];
+}
 
 /// The most basic representation of a gradient.
 @immutable
@@ -53,104 +125,277 @@ class PrimitiveGradient {
   /// `List<Color>` and `List<Stops>`.
   const PrimitiveGradient._(this.colors, this.stops);
 
-  // /// Interpolate two `List`s of `Color` *and* `double` stops at `t`. \
-  // /// Supports fewer `Color`s than the standard gradient.
-  // factory PrimitiveGradient.from(Gradient gradient) => PrimitiveGradient._(
-  //   gradient.colors, interpretStops(gradient.stops, gradient.colors.length));
+  /// Dissolve a [Gradient] into a `PrimitiveGradient`.
+  ///
+  /// Borrows the provided [Gradient.colors] but feeds the (potentially `null`)
+  /// `List<double>` [Gradient.stops] into the method [interpretStops].
+  ///
+  /// If this passed [gradient] has explicitly-constructed `stops`, they are
+  /// returned unfettered. Otherwise an evenly-distributed list of implied stops
+  /// is generated considering the [Gradient] type and the list of `colors`.
+  factory PrimitiveGradient.from(Gradient gradient) =>
+      PrimitiveGradient._(gradient.colors, interpretStops(gradient));
 
-  /// Interpolate two `List`s of `Color` *and* `double` stops at `t`. \
-  /// Supports fewer `Color`s than the standard gradient.
-  factory PrimitiveGradient.interpolateFrom(Gradient a, Gradient b, double t) {
-    final stops = t < 0.5
-        ? (a is Steps)
-            ? (List<double>.from(interpretStops(a.stops, a.colors.length + 1))
-              ..removeLast())
-            : interpretStops(a.stops, a.colors.length)
-        : (b is Steps)
-            ? (List<double>.from(interpretStops(b.stops, b.colors.length + 1))
-              ..removeLast())
-            : interpretStops(b.stops, b.colors.length);
-    final colors = t < 0.5 ? a.colors : b.colors;
-
-    // if (aColors == null || aColors.isEmpty) {
-    //   aColors = [Colors.transparent, Colors.transparent];
-    // }
-    // final aStops = interpretStops(a.stops, a.colors.length);
-
-    // if (bColors == null || bColors.isEmpty) {
-    //   bColors = [Colors.transparent, Colors.transparent];
-    // }
-    // final bStops = interpretStops(b.stops, b.colors.length);
-
-    // final stops = collection.SplayTreeSet<double>()
-    //   ..addAll(aStops)
-    //   ..addAll(bStops);
-    // final interpolatedStops = stops.toList(growable: false);
-    // final interpolatedStops = <double>[];
-    // // final interpolatedStops = stops.toList(growable: false);
-    // // if (t < 0.5) {
-    // if (t < 0.33) {
-    //   interpolatedStops.addAll(aStops);
-    //   // } else if (t < 0.4) {
-    //   //   for (var i = 0; i < stops.toList().length; i++) {
-    //   //     if (i.isEven) interpolatedStops.add(stops.toList()[i]);
-    //   //   }
-    // } else if (t < 0.66) {
-    //   interpolatedStops.addAll(stops.toList());
-    //   // } else if (t < 0.8) {
-    //   //   for (var i = 0; i < stops.toList().length; i++) {
-    //   //     if (i.isOdd) interpolatedStops.add(stops.toList()[i]);
-    //   //   }
-    // } else {
-    //   interpolatedStops.addAll(bStops);
-    // }
-    // final interpolatedStops = lerpList(aStops, bStops, t);
-    // final interpolatedColors = interpolatedStops
-    //     .map<Color>((double stop) => Color.lerp(
-    //      sample(a.colors, aStops, stop), sample(b.colors, bStops, stop), t)!)
-    //     .toList(growable: false);
-    // assert(
-    //   interpolatedColors.length == interpolatedStops.length,
-    //   '${interpolatedColors.length},${interpolatedStops.length}',
-    // );
-    // return PrimitiveGradient._(interpolatedColors, interpolatedStops);
-    return PrimitiveGradient._(colors, stops);
+  /// This factory constructor will return a [PrimitiveGradient] whose [colors]
+  /// and [stops] are progressively merged (as [t] progresses from `0.0 -> 1.0`)
+  /// by lerping any entries that fall within a shared common list length range
+  /// and adding any potential extra entries sourced from [b] as `t` grows while
+  /// removing any potential extra entries sourced from [a] as `t` grows.
+  factory PrimitiveGradient.byProgressiveMerge(
+      PrimitiveGradient a, PrimitiveGradient b, double t) {
+    final lerpedStops = _mergeListDouble(a.stops, b.stops, t, shouldSort: true);
+    // final lerpedColors = _mergeListColor(a.colors, b.colors, t);
+    final lerpedColors = lerpedStops
+        .map<Color>(
+          (double stop) => Color.lerp(
+            // sample(a is Steps ? a.steppedColors : a.colors, aStops, stop),
+            // sample(b is Steps ? b.steppedColors : b.colors, bStops, stop),
+            sample(a.colors, a.stops, stop /*, isDecal*/),
+            sample(b.colors, b.stops, stop /*, isDecal*/),
+            t,
+          )!,
+        )
+        .toList(growable: false);
+    return PrimitiveGradient._(lerpedColors, lerpedStops);
   }
 
-  /// The colors of the true [Gradient] this `PrimitiveGradient` represents.
+  /// Vanilla Flutter gradient merge process.
+  ///
+  /// Creates a new [collection.SplayTreeSet] with all stops from [a] & [b]
+  /// then maps a list of `Color`s to that set of all stops.
+  ///
+  /// The mapped colors will still represent those of gradient `a` when `t`
+  /// is `0.0` and represent gradient `b` when `t` is `1.0` by individually
+  /// [Color.lerp]ing each mapping between a [sample] from `a` and another
+  /// sample from `b` at the same keyframe `t`.
+  factory PrimitiveGradient.byCombination(Gradient a, Gradient b, double t) {
+    var aStops = /* a is Steps ? a.steppedStops : */ interpretStops(a);
+    var bStops = /* b is Steps ? b.steppedStops : */ interpretStops(b);
+
+    final stops = collection.SplayTreeSet<double>()
+      ..addAll(aStops)
+      ..addAll(bStops);
+    final interpolatedStops = stops.toList(growable: false);
+
+    // final stops = <double>[];
+    // var stops = aStops + bStops;
+    // var stops = aStops;
+    // for (var stop in bStops) {
+    //   if (!aStops.contains(stop)) stops.add(stop);
+    // }
+    // if ((t < 0.5 && b is Steps) || b is! Steps) stops.addAll(aStops);
+    // if ((t > 0.5 && a is Steps) || a is! Steps) stops.addAll(bStops);
+    // final interpolatedStops = stops..sort();
+
+    // final isDecal =
+    //     a.tileMode == TileMode.decal || b.tileMode == TileMode.decal;
+    final interpolatedColors = interpolatedStops
+        .map<Color>(
+          (double stop) => Color.lerp(
+            // sample(a is Steps ? a.steppedColors : a.colors, aStops, stop),
+            // sample(b is Steps ? b.steppedColors : b.colors, bStops, stop),
+            sample(a.colors, aStops, stop /*, isDecal*/),
+            sample(b.colors, bStops, stop /*, isDecal*/),
+            t,
+          )!,
+        )
+        .toList(growable: false);
+    return PrimitiveGradient._(interpolatedColors, interpolatedStops);
+  }
+
+  /// Interpolate two `Gradient`s' ***or*** `PrimitiveGradient`s'
+  /// [colors] and [stops] at `t`.
+  ///
+  /// This factory constructor will use the provided [PrimitiveGradient]s
+  /// or create them by [PrimitiveGradient.from] with provided [Gradient]s
+  /// but the smaller (by length of `colors` list) is [stretchedTo] have
+  /// the same number of entries as the larger.
+  ///
+  /// The returned [PrimitiveGradient] is then the result of [sameLengthLerp]ing
+  /// the stretched and non-stretched gradient at the provided keyframe [t].
+  factory PrimitiveGradient.fromStretchLerp(dynamic a, dynamic b, double t) {
+    final max = math.max(
+      a is Gradient
+          ? a.colors.length
+          : a is PrimitiveGradient
+              ? a.colors.length
+              : 0,
+      b is Gradient
+          ? b.colors.length
+          : b is PrimitiveGradient
+              ? b.colors.length
+              : 0,
+    );
+    final _a = a is PrimitiveGradient ? a : PrimitiveGradient.from(a);
+    final _b = b is PrimitiveGradient ? b : PrimitiveGradient.from(b);
+    // Force these gradients to have the same number of colors/stops
+    final stretchedA = _a.stretchedTo(max);
+    final stretchedB = _b.stretchedTo(max);
+    return PrimitiveGradient.sameLengthLerp(stretchedA, stretchedB, t);
+
+    // final lerpedColorsA =
+    //     lerpListColor(a.colors, stretchedA.colors, t < 0.5 ? t * 2 : 1.0);
+    // final lerpedStopsA =
+    //     lerpListDouble(a.stops, stretchedA.stops, t < 0.5 ? t * 2 : 1.0);
+    // final lerpedColorsB =
+    //     lerpListColor(b.colors, stretchedB.colors, t < 0.5 ? t * 2 : 1.0);
+    // final lerpedStopsB =
+    //     lerpListDouble(b.stops, stretchedB.stops, t < 0.5 ? t * 2 : 1.0);
+    //
+    // print('a.stops: ${interpretStops(a)}'); // print('stretchedA.stops: ${stretchedA.stops}'); // print('\nb.stops: ${interpretStops(b)}'); // print('stretchedB.stops: ${stretchedB.stops}');
+    // return PrimitiveGradient.lerp(
+    //   PrimitiveGradient._(lerpedColorsA, lerpedStopsA),
+    //   PrimitiveGradient._(lerpedColorsB, lerpedStopsB),
+    //   t,
+    // );
+  }
+
+  /// The interpolated colors of the true [Gradient]s that this
+  /// `PrimitiveGradient` boils down.
   final List<Color> colors;
 
-  /// The stops of the true [Gradient] this `PrimitiveGradient` represents.
+  /// The interpolated stops of the true [Gradient]s that this
+  /// `PrimitiveGradient` boils down.
   final List<double> stops;
 
-  // /// Calculate the color at position [t] of the gradient
-  // /// defined by [colors] and [stops]. \
-  // /// Modified from vanilla [Gradient] `_sample()` to support fewer `Color`s.
-  // ///
-  // /// This abstracts the color selection process from the gradient type itself.
-  // static Color sample(List<Color> colors, List<double> stops, double t) {
-  //   assert(colors.length == stops.length);
+  /// Extrapolate the stop at position [t] from a configured list of [stops].
+  ///
+  /// This process considers the actual beginning, ending, and intermediate
+  /// values at each configured stop and returns a new stop that would resemble
+  /// the place along this stops timeline of given length represented by
+  /// keyframe [t].
+  ///
+  /// ---
+  /// For example, if `stops` is `[0.0, 0.5, 0.75, 0.9]` with a length of four,
+  /// a requested `t` percentage of `t: 0.8` returns the value `0.78`.
+  ///
+  /// The value returned may be expected to be `0.8` itself; however consider
+  /// the stops list only ranges `0.0 .. 0.9`.
+  ///
+  /// This method starts with the lowest available stop that at least is greater
+  /// than the truncated "position" of this `t` along a the list of
+  /// `stops.length`.
+  /// - As above, with `t: 0.8`, the position of this extrapolated stop is
+  ///   `0.8 * stops.length` (length is 4) = `3.2`
+  ///
+  /// The individual "progress" of this extrapolated stop is 20% (`3.2 - 3`)
+  /// of the way from the third stop to the fourth stop, `0.75` and `0.9`
+  /// in this case.
+  /// - `0.75 + (0.9 - 0.75) * 0.2 = 0.78`
+  static double extrapolateStop(List<double> stops, double t) {
+    final position = t * stops.length;
+    final progress = position - position.truncate();
 
-  //   /// Colors at beginning and ending of stops/gradient
-  //   if (t <= stops.first) return colors.first;
-  //   if (t >= stops.last) return colors.last;
+    final lastIndex = stops
+        .lastIndexWhere((double s) => s <= position.truncate() / stops.length);
+    final next = stops.firstWhere((double s) => s >= t, orElse: () => 1.0);
 
-  //   final index = stops.lastIndexWhere((double s) => s <= t);
-  //   assert(index != -1);
-  //   return Color.lerp(
-  //     colors[index],
-  //     colors[index + 1],
-  //     (t - stops[index]) / (stops[index + 1] - stops[index]), // normalize 0..1
-  //   )!;
-  // }
+    final result = stops[lastIndex] + (next - stops[lastIndex]) * progress;
+    // print('\nTARGET: $t; position: $position out of ${stops.length} | '
+    //     'lastIndex: $lastIndex, next original stop: $next, \nresult: $result');
+    return result;
+  }
+
+  /// Calculate the color at position [t] of the gradient
+  /// defined by [colors] and [stops]. \
+  /// Modified from vanilla [Gradient] `_sample()` to support fewer `Color`s.
+  ///
+  /// This abstracts the color selection process from the gradient type itself.
+  // // static Color sample(List<Color> colors, List<double> stops, double t, bool isDecal ) {
+  static Color sample(List<Color> colors, List<double> stops, double t) {
+    if (colors.isEmpty) {
+      colors = [Colors.transparent, Colors.transparent];
+    } else if (colors.length == 1) {
+      colors = colors + colors;
+    }
+    if (stops.isEmpty) {
+      stops = [0.0, 1.0];
+    } else if (stops.length == 1) {
+      if (!stops.contains(1.0)) {
+        stops = stops + [1.0];
+      } else {
+        stops = [0.0] + stops;
+      }
+    }
+    final safeLength = math.min(colors.length, stops.length);
+    final safeColors = <Color>[for (int i = 0; i < safeLength; i++) colors[i]];
+    //final safeStops = <double>[for (int i = 0; i < safeLength; i++) stops[i]];
+    for (var i = safeLength; i < stops.length; i++) {
+      safeColors.add(colors.last);
+    }
+    // Colors at beginning and ending of stops/gradient
+    if (t <= stops.first) {
+      return // isDecal ? colors.first.withOpacity(0.0) :
+          colors.first;
+    }
+    if (t >= stops.last) {
+      return // isDecal ? colors.last.withOpacity(0.0) :
+          colors.last;
+    }
+    final index = stops.lastIndexWhere((double s) => s <= t);
+    return Color.lerp(
+      safeColors[index],
+      safeColors[index + 1],
+      (t - stops[index]) / (stops[index + 1] - stops[index]),
+    )!;
+  }
+
+  /// Force this [PrimitiveGradient] to have [length] number of colors/stops.
+  ///
+  /// This method tries to return a gradient comprised of more colors and stops
+  /// than the original but that still represents the original visually.
+  ///
+  /// The returned `PrimitiveGradient` has first and last stops entries that
+  /// have stayed the same but its intermittent entries have been remapped to
+  /// accommodate extra colors/stops additions by [extrapolateStop]s and [sample].
+  PrimitiveGradient stretchedTo(int length) {
+    if (colors.length == length) return this;
+    final stretchedStops = List<double>.generate(
+      length,
+      (int i) {
+        if (i == 0) {
+          return stops.first;
+        } else if (i == length - 1) {
+          return stops.last;
+        } else {
+          return extrapolateStop(stops, (i + 1) / length);
+        }
+      },
+      growable: false,
+    );
+    final stretchedColors = stretchedStops
+        .map<Color>((double stop) => sample(colors, stops, stop))
+        .toList(growable: false);
+    // print('input length: ${colors.length}, '
+    // 'output length: ${stretchedColors.length} (desired: $length)\n\n');
+    return PrimitiveGradient._(stretchedColors, stretchedStops);
+  }
 
   /// "Scaling" this gradient represents reducing the opacity of all its colors
   /// by [Color.lerp] with `null` using [factor] as the keyframe `t`.
-  PrimitiveGradient scale(double factor) {
-    final scaledColors = colors
-        .map<Color>((Color color) => Color.lerp(null, color, factor)!)
-        .toList(growable: false);
-    return PrimitiveGradient._(scaledColors, stops);
+  PrimitiveGradient scale(double factor) => PrimitiveGradient._(
+        colors
+            .map<Color>((Color color) => Color.lerp(null, color, factor)!)
+            .toList(growable: false),
+        stops,
+      );
+
+  /// Linearally interpolate between `PrimitiveGradient`s [a] and [b] at any
+  /// given keyframe (`double`) [t], generally `0.0 .. 1.0`.
+  ///
+  /// This method presumes the gradients have the same number of [colors].
+  static PrimitiveGradient sameLengthLerp(
+    PrimitiveGradient a,
+    PrimitiveGradient b,
+    double t,
+  ) {
+    assert(a.colors.length == b.colors.length, 'list lengths should be equal');
+    final length = a.colors.length;
+    final lerpedStops = _mergeListDouble(a.stops, b.stops, t);
+    final lerpedColors = <Color>[
+      for (int i = 0; i < length; i++) Color.lerp(a.colors[i], b.colors[i], t)!,
+    ];
+    return PrimitiveGradient._(lerpedColors, lerpedStops);
   }
 }
 
@@ -189,11 +434,93 @@ class GradientPacket {
   ///
   /// A `t` somewhere between `0..1` returns properties via this
   /// `GradientPacket`'s getters that represent the mixture of the respective
-  /// property from [a] & [b] at a ratio that interprets `t` as a percentage
-  /// between `a..b`.
+  /// property from [a] & [b] at a ratio where `t` is interpreted as
+  /// a percentage between `a..b`.
   final double t;
 
-  // UNIVERSAL
+  Gradient get _a => a is IntermediateGradient
+      ? (a as IntermediateGradient).packet.t < 0.5
+          ? (a as IntermediateGradient).packet.a
+          : (a as IntermediateGradient).packet.b
+      // : a is Steps
+      //     ? (a as Steps).asGradient
+      : a;
+  Gradient get _b => b is IntermediateGradient
+      ? (b as IntermediateGradient).packet.t < 0.5
+          ? (b as IntermediateGradient).packet.a
+          : (b as IntermediateGradient).packet.b
+      // : b is Steps
+      //     ? (b as Steps).asGradient
+      : b;
+
+  bool get _areSame => _a.runtimeType == _b.runtimeType;
+
+  /// If [a] & [b] are the same `Type` of [Gradient], returns [t].
+  ///
+  /// Otherwise doubles [t] to to return range `0..1` while `t<0.5` & doubles
+  /// [t] after subtracting `0.5` to to return range `0..1` while `t>0.5`.
+  double get _t => _areSame
+      ? t
+      : t < 0.5
+          ? t * 2
+          : (t - 0.5) * 2;
+
+  bool get _shareLinearProps {
+    final aType = _a.runtimeType;
+    final bType = _b.runtimeType;
+    return _areSame ||
+        ((aType == LinearGradient ||
+                aType == LinearSteps ||
+                aType == LinearShadedSteps) &&
+            (bType == LinearGradient ||
+                bType == LinearSteps ||
+                bType == LinearShadedSteps));
+  }
+
+  bool get _shareRadialProps {
+    final aType = _a.runtimeType;
+    final bType = _b.runtimeType;
+    return _areSame ||
+        ((aType == RadialGradient ||
+                aType == RadialSteps ||
+                aType == RadialShadedSteps) &&
+            (bType == RadialGradient ||
+                bType == RadialSteps ||
+                bType == RadialShadedSteps));
+  }
+
+  bool get _shareSweepProps {
+    final aType = _a.runtimeType;
+    final bType = _b.runtimeType;
+    return _areSame ||
+        ((aType == SweepGradient ||
+                aType == SweepSteps ||
+                aType == SweepShadedSteps) &&
+            (bType == SweepGradient ||
+                bType == SweepSteps ||
+                bType == SweepShadedSteps));
+  }
+
+  bool get _shareCenterProp {
+    final aType = _a.runtimeType;
+    final bType = _b.runtimeType;
+    return _areSame ||
+        ((aType == RadialGradient ||
+                aType == RadialSteps ||
+                aType == RadialShadedSteps ||
+                aType == SweepGradient ||
+                aType == SweepSteps ||
+                aType == SweepShadedSteps) &&
+            (bType == RadialGradient ||
+                bType == RadialSteps ||
+                bType == RadialShadedSteps ||
+                bType == SweepGradient ||
+                bType == SweepSteps ||
+                bType == SweepShadedSteps));
+  }
+
+  //# UNIVERSAL
+
   /// {@template gradientpacket_getter}
   /// Returns the interpolation of this [Gradient] or [Gradient]-subclass
   /// property at keyframe [t] for gradients [a] and [b].
@@ -201,152 +528,127 @@ class GradientPacket {
   /// See [GradientUtils] to understand how fallbacks are determined for
   /// subclasses that do not contain this property.
   /// {@endtemplate}
-  GradientTransform? get transform => t < 0.5 ? b.transform : a.transform;
+  Gradient get gradient => t < 0.5 ? _a : _b;
 
   /// {@macro gradientpacket_getter}
-  TileMode get tileMode => t < 0.5 ? b.tileMode : a.tileMode;
-
-  // LINEAR
-  /// {@macro gradientpacket_getter}
-  AlignmentGeometry get begin => AlignmentGeometry.lerp(a.begin, b.begin, t)!;
+  GradientTransform? get transform => t < 0.5 ? _a.transform : _b.transform;
 
   /// {@macro gradientpacket_getter}
-  AlignmentGeometry get end => AlignmentGeometry.lerp(a.end, b.end, t)!;
+  TileMode get tileMode => t < 0.5 ? _a.tileMode : _b.tileMode;
 
-  // RADIAL or SWEEP
+  //# LINEAR
+
+  /// {@macro gradientpacket_getter}
+  AlignmentGeometry get begin =>
+      AlignmentGeometry.lerp(_a.begin, _b.begin, _shareLinearProps ? t : _t)!;
+
+  /// {@macro gradientpacket_getter}
+  AlignmentGeometry get end =>
+      AlignmentGeometry.lerp(_a.end, _b.end, _shareLinearProps ? t : _t)!;
+
+  //# RADIAL or SWEEP
+
   /// {@macro gradientpacket_getter}
   AlignmentGeometry get center =>
-      AlignmentGeometry.lerp(a.center, b.center, t)!;
+      AlignmentGeometry.lerp(_a.center, _b.center, _shareCenterProp ? t : _t)!;
 
-  // RADIAL
-  /// {@macro gradientpacket_getter}
-  double get radius => ui.lerpDouble(a.radius, b.radius, t) ?? 0.0;
+  //# RADIAL
 
   /// {@macro gradientpacket_getter}
-  AlignmentGeometry? get focal => AlignmentGeometry.lerp(a.focal, b.focal, t);
+  double get radius => math.max(
+        0.0,
+        ui.lerpDouble(_a.radius, _b.radius, _shareRadialProps ? t : _t)!,
+      );
 
   /// {@macro gradientpacket_getter}
-  double get focalRadius =>
-      ui.lerpDouble(a.focalRadius, b.focalRadius, t) ?? 0.0;
+  AlignmentGeometry? get focal => AlignmentGeometry.lerp(
+        _a.focal,
+        _b.focal,
+        _shareRadialProps ? t : _t,
+      );
 
-  // SWEEP
   /// {@macro gradientpacket_getter}
-  double get startAngle => ui.lerpDouble(a.startAngle, b.startAngle, t) ?? 0.0;
+  double get focalRadius => math.max(
+      0.0,
+      ui.lerpDouble(
+        _a.focalRadius,
+        _b.focalRadius,
+        _shareRadialProps ? t : _t,
+      )!);
+
+  //# SWEEP
 
   /// {@macro gradientpacket_getter}
-  double get endAngle => ui.lerpDouble(a.endAngle, b.endAngle, t) ?? 0.0;
+  double get startAngle => math.max(
+        0.0,
+        ui.lerpDouble(_a.startAngle, _b.startAngle, _shareSweepProps ? t : _t)!,
+      );
 
-  // STEPS
   /// {@macro gradientpacket_getter}
-  double get softness => ui.lerpDouble(a.softness, b.softness, t) ?? 0.0;
+  double get endAngle => math.max(
+        0.0,
+        ui.lerpDouble(_a.endAngle, _b.endAngle, _shareSweepProps ? t : _t)!,
+      );
+
+  //# STEPS
+
+  /// {@macro gradientpacket_getter}
+  double get softness =>
+      math.max(0.0, ui.lerpDouble(_a.softness, _b.softness, _t)!);
+
+  /// {@macro gradientpacket_getter}
+  ColorArithmetic get shadeFunction =>
+      t < 0.5 ? _a.shadeFunction : _b.shadeFunction;
+
+  /// {@macro gradientpacket_getter}
+  num get shadeFactor => Tween<double>(
+          begin: _a.shadeFactor.toDouble(), end: _b.shadeFactor.toDouble())
+      .transform(t);
+
+  /// {@macro gradientpacket_getter}
+  double get distance =>
+      math.max(0.0, ui.lerpDouble(_a.distance, _b.distance, _t)!);
 }
 
-/// Use a [new IntermediateGradient] as a stand-in between discrete forms
-/// of [Gradient]s during tweens.
-class IntermediateGradient extends Gradient {
-  /// Considering the [type] to output, [packet] of potential properties
-  /// from both of two gradients, and the [primitiveGradient] of colors and
-  /// stops formed from those same two gradients: provide dynamic [createShader]
-  /// method that considers all the above to create a [Shader] that best
-  /// represents a mix of these two gradients.
-  IntermediateGradient(
-    this.type,
-    this.packet,
-    this.primitiveGradient,
-  ) : super(
-          colors: primitiveGradient.colors,
-          stops: primitiveGradient.stops,
-        );
+// /// Incorporate a `List<Color>` [b] into list [a] over a period of time ranging
+// /// from [t] == `0.0 .. 1.0`. See [_mergeListColor] which performs this
+// /// functionality but accepts `List<Color>` instead of [Gradient].
+// ///
+// /// When `t` is `0.0`, the list will resemble [a]. \
+// /// When `t` is `1.0`, the list will resemble [b].
+// List<Color> lerpListColorFrom(Gradient? a, Gradient? b, double t) {
+//   if (a == null && b == null) return [Colors.transparent,Colors.transparent];
+//   if (b == null) return a!.colors;
+//   if (a == null) return b.colors;
+//   final commonLength = math.min(a.colors.length, b.colors.length);
+//   final colorsA = a.colors;
+//   final colorsB = b.colors;
+//   final decalA = a.tileMode == TileMode.decal;
+//   final decalB = b.tileMode == TileMode.decal;
 
-  /// This determines the return type of the generated [Shader] from
-  /// [createShader]. Interpreted within constructor by a `lerp()` method
-  /// that provides a beginning gradient's type when that method's
-  /// `t < 0.5` and providing the ending gradient's type after that.
-  final Type type;
+//   Color lastOrTransparent(List<Color> colors, int index, bool isDecal) {
+//     if (index == colors.length) {
+//       return isDecal ? Colors.transparent : colors.last;
+//     }
+//     return colors[index];
+//   }
 
-  /// The most basic representation of a [Gradient]: a list of colors and a
-  /// list of stops.
-  ///
-  /// This object is created by factory [PrimitiveGradient.interpolateFrom]
-  /// two lists of colors and two lists of stops that considers a keyframe `t`
-  /// for interpolating between them.
-  final PrimitiveGradient primitiveGradient;
-
-  /// {@macro gradientpacket}
-  final GradientPacket packet;
-
-  @override
-  Shader createShader(Rect rect, {TextDirection? textDirection}) {
-    /// The lists should already be same length by this point, but something
-    /// may have happened along the way through lerping or hot restarting
-    /// that leaves a few cycles with dissimilar values.
-    /// Secure their lengths here.
-    assert(
-      colors.length == stops?.length,
-      'colors length: ${colors.length}, stops length: ${stops?.length}',
-    );
-    final commonLength =
-        math.min(colors.length, stops?.length ?? colors.length);
-    final securedStops = <double>[
-      for (int i = 0; i < commonLength; i++) stops![i]
-    ];
-
-    return (type == RadialGradient
-            ? RadialGradient(colors: colors)
-            : type == SweepGradient
-                ? SweepGradient(colors: colors)
-                : type == LinearSteps
-                    ? LinearSteps(colors: colors)
-                    : type == RadialSteps
-                        ? RadialSteps(colors: colors)
-                        : type == SweepSteps
-                            ? SweepSteps(colors: colors)
-                            : LinearGradient(colors: colors))
-        .copyWith(
-          stops: securedStops,
-          transform: packet.transform,
-          tileMode: packet.tileMode,
-          begin: packet.begin,
-          end: packet.end,
-          center: packet.center,
-          radius: packet.radius,
-          focal: packet.focal,
-          focalRadius: packet.focalRadius,
-          startAngle: packet.startAngle,
-          endAngle: packet.endAngle,
-          softness: packet.softness,
-        )
-        .createShader(rect, textDirection: textDirection);
-  }
-
-  @override
-  IntermediateGradient scale(double factor) =>
-      IntermediateGradient(type, packet, primitiveGradient.scale(factor));
-
-  @override
-  Gradient? lerpFrom(Gradient? a, double t) =>
-      (a == null || (a is IntermediateGradient))
-          ? IntermediateGradient.lerp(a as IntermediateGradient?, this, t)
-          : super.lerpFrom(a, t);
-
-  @override
-  Gradient? lerpTo(Gradient? b, double t) =>
-      (b == null || (b is IntermediateGradient))
-          ? IntermediateGradient.lerp(this, b as IntermediateGradient?, t)
-          : super.lerpTo(b, t);
-
-  /// If both are `null`, returns `null`. \
-  /// If `a == null`, returns `b!.scale(t)`. \
-  /// If `b == null`, returns `a.scale(1.0 - t)`. \
-  /// Else returns `a` before `t == 0.5` and `b` after halfway.
-  ///
-  /// The [scale] method forwards the `factor` to the `IntermediateGradient`'s
-  /// [primitiveGradient] by [PrimitiveGradient.scale].
-  static IntermediateGradient? lerp(
-      IntermediateGradient? a, IntermediateGradient? b, double t) {
-    if (a == null && b == null) return null;
-    if (a == null) return b!.scale(t);
-    if (b == null) return a.scale(1.0 - t);
-    return t < 0.5 ? a : b;
-  }
-}
+//   return <Color>[
+//     for (int i = 0; i < commonLength; i++)
+//       // Color.lerp(lastOrTransparent(colorsA, i, decalA),
+//       //   lastOrTransparent(colorsB, i, decalB), t)!,
+//       Color.lerp(colorsA[i], colorsB[i], t)!,
+//     // for (int i = commonLength; i < a.length; i++)
+//     //   Color.lerp(a[i], b.last, t)!,
+//     // for (int i = commonLength; i < b.length; i++)
+//     //   Color.lerp(b[i], a.last, (1.0 - t))!,
+//     for (int i = commonLength; i < colorsA.length; i++)
+//       // Color.lerp(null, lastOrTransparent(colorsA, i, decalA), 1.0 - t)!,
+//       // Color.lerp(null, colorsA[i], 1.0 - t)!,
+//       colorsA[i].withOpacity((1.0 - t).clamp(0.0, 1.0)),
+//     for (int i = commonLength; i < colorsB.length; i++)
+//       // Color.lerp(lastOrTransparent(colorsB, i, decalB), null, 1.0 - t)!,
+//       // Color.lerp(colorsB[i], null, 1.0 - t)!,
+//       colorsB[i].withOpacity((t).clamp(0.0, 1.0)),
+//   ];
+// }

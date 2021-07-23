@@ -1,7 +1,7 @@
 /// Provide relevantly Typed `Gradient`s for smooth tweens.
 library spectrum;
 
-import '../common.dart';
+import 'common.dart';
 
 import 'steps.dart';
 
@@ -11,6 +11,11 @@ import 'steps.dart';
 /// Though all are transparent, consider that some have other properties set
 /// as well; such as the start and end angle for [sweep] both being `~0`
 /// or the `radius` of [radial] being `0`.
+///
+/// The getter [asNill] is an extended property for an instantiated `Gradient`.
+/// It refers to the static method [nillify], which may be called as:
+///
+///     NillGradients.nillify(Type type)
 extension NillGradients on Gradient {
   ///     Gradient get asNill => nillify( /* this. */ runtimeType);
   ///
@@ -27,6 +32,9 @@ extension NillGradients on Gradient {
   ///
   ///     final radialGradient = RadialGradient(. . .);
   ///     final emptyRadialGradient = radialGradient.asNill;
+  ///
+  /// ---
+  /// TODO: Implement [GradientCopyWith]
   Gradient get asNill =>
       nillify(runtimeType) ??
       copyWith(
