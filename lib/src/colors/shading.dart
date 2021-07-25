@@ -1,6 +1,6 @@
 /// - 🔦⬜⬛ [Shading] `extension on Color` \
 /// offering `withWhite()` and `withBlack()`.
-library spectrum;
+library colors;
 
 import 'common.dart';
 

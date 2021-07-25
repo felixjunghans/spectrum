@@ -1,18 +1,15 @@
+/// `enum`s
+/// - [GradientProperty]
+///
 /// `typedef`s
-/// - [TweenSpec]
+//\ - [TweenSpec]
 /// - [ColorArithmetic], [StopsArithmetic]
 ///
 /// Static Method Wrappers
 /// - [Shades], [Maths]
-///
-/// `enum`s
-/// - [GradientProperty]
-library spectrum;
+library gradients;
 
 import 'common.dart';
-
-/// A `TweenSpec` is a `Map` of [GradientProperty]s to respective [Tween]s.
-typedef TweenSpec = Map<GradientProperty, Tween<dynamic>>;
 
 /// Potential gradient properties for tweenage, notably excluding
 /// `colors`, `stops`, `transform`, & `tileMode`,
@@ -32,7 +29,7 @@ enum GradientProperty {
 }
 
 /// A `ColorArithmetic` is a function that returns a [Color] after accepting
-/// and considering a `Color` and an `int` [factor].
+/// and considering a `Color` and an `double` [factor].
 ///
 /// The default `ColorArithmetic` function for `FooShadedSteps` is
 /// [Shades.withWhite], where a positive value lightens the color and negative

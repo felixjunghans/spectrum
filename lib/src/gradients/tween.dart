@@ -1,13 +1,13 @@
 /// Provides `GradientTween` which specializes the interpolation
 /// of [Tween<Gradient>] to use [Gradient.lerp] and bespoke
 /// [IntermediateGradient]s.
-library spectrum;
+library gradients;
 
 import 'dart:math' as math;
 
 import 'common.dart';
 import 'interpolation.dart';
-import 'steps.dart';
+import 'steps/steps.dart';
 
 /// An interpolation between two `Gradient`s.
 ///

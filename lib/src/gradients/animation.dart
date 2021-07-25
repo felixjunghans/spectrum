@@ -1,16 +1,13 @@
-/// TODO
-library spectrum;
+/// Provides [AnimatedGradient], defined by [GradientAnimation],
+//\ [GradientStoryboard],
+/// [GradientProperty].
+///
+/// See also: [ColorArithmetic], [StopsArithmetic],
+//\ [TweenSpec]; all options for a `GradientStoryboard`.
+library gradients;
 
 import 'common.dart';
 import 'models.dart';
-
-/// Mappings from [GradientAnimation](s) -> `dynamic`,
-/// where `dynamic` matches with the key:
-/// - `GradientAnimation.colorArithmetic:` [ColorArithmetic]
-/// - `GradientAnimation.stopsArithmetic:` [StopsArithmetic]
-/// - `GradientAnimation.tweenSpec: TweenSpec`
-///   - Where [TweenSpec] is a mapping from [GradientProperty](s) -> [Tween](s)
-typedef GradientStoryboard = Map<GradientAnimation, dynamic>;
 
 /// Defines the options for a variety of transformations to apply to a
 /// `Gradient` in the process of making it an [AnimatedGradient].
@@ -21,8 +18,12 @@ typedef GradientStoryboard = Map<GradientAnimation, dynamic>;
 /// [colorArithmetic] maps to a [ColorArithmetic] function and
 /// [stopsArithmetic] maps to a [StopsArithmetic] function.
 ///
-/// [tweenSpec] maps not to a function, but to a [TweenSpec] that describes
-/// a further embarrassment of riches for [GradientProperty] tweening.
+// [tweenSpec] maps not to a function, but to a [TweenSpec] that describes
+// a further embarrassment of riches for [GradientProperty] tweening.
+//
+/// [tweenSpec] maps not to a function, but to a
+/// `Map<GradientProperty, Tween<dynamic>>` that describes an embarrassment of
+/// riches for [GradientProperty] tweening.
 enum GradientAnimation {
   /// `GradientAnimation.colorArithmetic` implies a [ColorArithmetic]
   /// will be mapped.
@@ -32,7 +33,9 @@ enum GradientAnimation {
   /// will be mapped.
   stopsArithmetic,
 
-  /// `GradientAnimation.tweenSpec` implies a [TweenSpec] will be mapped.
+  // `GradientAnimation.tweenSpec` implies a [TweenSpec] will be mapped.
+  /// `GradientAnimation.tweenSpec` implies a
+  /// `Map<GradientProperty, Tween<dynamic>>` will be mapped.
   tweenSpec,
 
   /// `GradientAnimation.none` implies no animation should occur.
@@ -42,6 +45,27 @@ enum GradientAnimation {
   /// will disable all animation transformations.
   none,
 }
+
+// /// Mappings from [GradientAnimation](s) -> `dynamic`,
+// /// where `dynamic` matches with the key:
+// /// - `GradientAnimation.colorArithmetic:` [ColorArithmetic]
+// /// - `GradientAnimation.stopsArithmetic:` [StopsArithmetic]
+// /// - `GradientAnimation.tweenSpec: TweenSpec`
+// ///   - Where [TweenSpec] is a mapping from [GradientProperty](s) -> [Tween](s)
+// //
+// // New `typedef`s as of Dart 2.13 may be non-function aliases.
+// // However this definition causes dartdoc error:
+// //     dartdoc 1.0.0 (/C:/src/flutter/.pub-cache/global_packages/dartdoc/bin/dartdoc.dart-2.13.4.snapshot)
+// //       failed: Bad state: typedef GradientStoryboard = Map<GradientAnimation, dynamic> cannot have parameters \
+// typedef GradientStoryboard = Map<GradientAnimation, dynamic>;
+
+// /// A `TweenSpec` is a `Map` of [GradientProperty]s to respective [Tween]s.
+// //
+// // New `typedef`s as of Dart 2.13 may be non-function aliases.
+// // However this definition causes dartdoc error:
+// //     dartdoc 1.0.0 (/C:/src/flutter/.pub-cache/global_packages/dartdoc/bin/dartdoc.dart-2.13.4.snapshot)
+// //       failed: Bad state: typedef GradientStoryboard = Map<GradientAnimation, dynamic> cannot have parameters \
+// typedef TweenSpec = Map<GradientProperty, Tween<dynamic>>;
 
 /// An [AnimatedWidget] that expects to be provided an initialized [Listenable].
 ///
@@ -70,33 +94,29 @@ class AnimatedGradient extends AnimatedWidget {
   ///   whose gradient is set to [observe].
   ///
   /// ## Animated Gradient Storyboard `Map`
-  /// A [GradientStoryboard] value provided as [storyboard] maps
+  /// A "Gradient Storyboard" value provided as [storyboard] maps
   /// [GradientAnimation]s to relevant values to apply those animation
   /// transformations.
   ///
-  /// The default is [defaultStoryboard] which applies [ColorArithmetic] and
-  /// [StopsArithmetic] that both play nicely with standard `0..1`
-  /// [AnimationController] values.
-  ///
-  /// Beyond these two arithmetic animation transformations,
-  /// [GradientAnimation.tweenSpec] may be mapped to a [TweenSpec] to detail
+  /// Beyond [ColorArithmetic] & [StopsArithmetic] animation transformations,
+  // [GradientAnimation.tweenSpec] may be mapped to a [TweenSpec] to detail
+  /// [GradientAnimation.tweenSpec] may be mapped to a "TweenSpec" to detail
   /// individual [Tween]s for each of the many potential [Gradient] sub-type
   /// properties (such as [LinearGradient.begin] or [RadialGradient.radius]).
+  ///
+  /// This "TweenSpec" is a `Map<GradientProperty, Tween<dynamic>>`.
   ///
   /// ## `GradientAnimation` Mappings
   /// If `GradientAnimation.colorArithmetic` is mapped to a [ColorArithmetic],
   /// then that function applies [Gradient.colors] animation transformations. \
-  /// The default from [defaultStoryboard] uses [Shades.withOpacity] which
-  /// applies the clamped animation value as each gradient color's opacity,
-  /// between `0..1`. \
   /// See [Shades] for more ideas.
   ///
   /// If `GradientAnimation.stopsArithmetic` is mapped to a [StopsArithmetic],
   /// then that function applies [Gradient.stops] animation transformations. \
-  /// The default from [defaultStoryboard] is [Maths.subtraction]. \
   /// See [Maths] for more ideas.
   ///
-  /// If `GradientAnimation.tweenSpec` is mapped to a [TweenSpec], then *that*
+  // If `GradientAnimation.tweenSpec` is mapped to a [TweenSpec], then *that*
+  /// If `GradientAnimation.tweenSpec` is mapped to a "TweenSpec", then *that*
   /// object allows the mapping of [Tween]s to any potential [GradientProperty].
   ///
   /// ## Custom `copyWith()` Function
@@ -107,33 +127,34 @@ class AnimatedGradient extends AnimatedWidget {
     Key? key,
     required Animation<double> controller,
     required Gradient gradient,
-    this.storyboard = defaultStoryboard,
-    // this.style = GradientAnimation.colorArithmetic,
-    // required this.style,
-    // this.colorArithmetic = Shades.withOpacity,
-    // this.stopsArithmetic = Maths.subtraction,
-    // this.tweenSpec = const {},
+    this.storyboard = const {},
     GradientCopyWith overrideCopyWith = spectrumCopyWith,
   })  : _copyWith = overrideCopyWith,
         _gradient = gradient,
         super(key: key, listenable: controller);
 
-  /// The default [GradientStoryboard] for a [new AnimatedGradient].
-  // ///
-  // /// This storyboard maps [GradientAnimation.colorArithmetic] to
-  // /// [Shades.withOpacity] and [GradientAnimation.stopsArithmetic] to
-  // /// [Maths.subtraction], providing both of these animation transformations
-  // /// to the [AnimatedGradient.observe] output.
-  static const GradientStoryboard defaultStoryboard = {
-    // GradientAnimation.colorArithmetic: Shades.withOpacity,
-    // GradientAnimation.stopsArithmetic: Maths.subtraction,
-  };
+  // /// The default [GradientStoryboard] for a [new AnimatedGradient].
+  // // ///
+  // // /// This storyboard maps [GradientAnimation.colorArithmetic] to
+  // // /// [Shades.withOpacity] and [GradientAnimation.stopsArithmetic] to
+  // // /// [Maths.subtraction], providing both of these animation transformations
+  // // /// to the [AnimatedGradient.observe] output.
+  // static const GradientStoryboard defaultStoryboard = {
+  //   // GradientAnimation.colorArithmetic: Shades.withOpacity,
+  //   // GradientAnimation.stopsArithmetic: Maths.subtraction,
+  // };
 
   /// The provided `Animation<double>` from construction, accessed as
   /// `super.listenable`.
   Animation<double> get animation => listenable as Animation<double>;
 
   /// The `Gradient` provided at construction.
+  // Such that an inquiring developer could look through the available
+  // properties of an `AnimatedGradient` and not see an ambiguous "gradient"
+  // field.
+  ///
+  /// To obtain the actual animated output of this `AnimatedGradient`,
+  /// invoke [observe].
   Gradient get gradientInput => _gradient;
 
   /// The `Gradient` provided at construction.
@@ -143,9 +164,11 @@ class AnimatedGradient extends AnimatedWidget {
   /// with the key:
   /// - `GradientAnimation.colorArithmetic:` [ColorArithmetic]
   /// - `GradientAnimation.stopsArithmetic:` [StopsArithmetic]
-  /// - `GradientAnimation.tweenSpec: TweenSpec`
-  ///   - Where [TweenSpec] is a mapping from [GradientProperty]s -> [Tween]s
-  final GradientStoryboard storyboard;
+  // - `GradientAnimation.tweenSpec: TweenSpec`
+  //   - Where [TweenSpec] is a mapping from [GradientProperty]s -> [Tween]s
+  /// - `GradientAnimation.tweenSpec: Map<GradientProperty, Tween<dynamic>>`
+  final Map<GradientAnimation, dynamic> storyboard;
+  // final GradientStoryboard storyboard;
 
   /// Override this package's default `Gradient.copyWith()` method:
   /// [spectrumCopyWith], a wrapper for [GradientUtils] extension
@@ -200,8 +223,9 @@ class AnimatedGradient extends AnimatedWidget {
   /// [GradientAnimation]s -> `dynamic`, where `dynamic` matches with the key:
   /// - `GradientAnimation.colorArithmetic:` [ColorArithmetic]
   /// - `GradientAnimation.stopsArithmetic:` [StopsArithmetic]
-  /// - `GradientAnimation.tweenSpec: TweenSpec`
-  ///   - Where [TweenSpec] is a mapping from [GradientProperty]s -> [Tween]s
+  // - `GradientAnimation.tweenSpec: TweenSpec`
+  //   - Where [TweenSpec] is a mapping from [GradientProperty]s -> [Tween]s
+  /// - `GradientAnimation.tweenSpec: Map<GradientProperty, Tween<dynamic>>`
   Gradient get observe {
     if (storyboard.isEmpty || storyboard.containsKey(GradientAnimation.none)) {
       return _gradient;
@@ -235,7 +259,9 @@ class AnimatedGradient extends AnimatedWidget {
       return observation;
     }
 
-    final spec = storyboard[GradientAnimation.tweenSpec] as TweenSpec;
+    // final spec = storyboard[GradientAnimation.tweenSpec] as TweenSpec;
+    final spec = storyboard[GradientAnimation.tweenSpec]
+        as Map<GradientProperty, Tween<dynamic>>;
     return _copyWith(
       observation,
       begin: spec.containsKey(GradientProperty.begin)
@@ -306,101 +332,150 @@ class AnimatedGradient extends AnimatedWidget {
         'ensure the function value is a [StopsArithmetic].');
     assert(
         storyboard.containsKey(GradientAnimation.tweenSpec)
-            ? storyboard[GradientAnimation.tweenSpec]! is TweenSpec
+            // ? storyboard[GradientAnimation.tweenSpec]! is TweenSpec
+            ? storyboard[GradientAnimation.tweenSpec]!
+                is Map<GradientProperty, Tween<dynamic>>
             : true,
         'If [GradientAnimation.tweenSpec] is employed, '
         'ensure the map value is a [TweenSpec].');
 
     if (storyboard.containsKey(GradientAnimation.tweenSpec)) {
       assert(
-          (storyboard[GradientAnimation.tweenSpec] as TweenSpec)
+          // (storyboard[GradientAnimation.tweenSpec] as TweenSpec)
+          (storyboard[GradientAnimation.tweenSpec]
+                      as Map<GradientProperty, Tween<dynamic>>)
                   .containsKey(GradientProperty.begin)
               ? (storyboard[GradientAnimation.tweenSpec]
-                      as TweenSpec)[GradientProperty.begin]!
-                  is Tween<AlignmentGeometry?>
+                      // as TweenSpec)[GradientProperty.begin]!
+                      as Map<GradientProperty, Tween<dynamic>>)[
+                  GradientProperty.begin]! is Tween<AlignmentGeometry?>
               : true,
           'If [GradientProperty.begin] is employed, '
           'ensure the [tween] is a [Tween<AlignmentGeometry?>].');
       assert(
-          (storyboard[GradientAnimation.tweenSpec] as TweenSpec)
+          // (storyboard[GradientAnimation.tweenSpec] as TweenSpec)
+          (storyboard[GradientAnimation.tweenSpec]
+                      as Map<GradientProperty, Tween<dynamic>>)
                   .containsKey(GradientProperty.end)
               ? (storyboard[GradientAnimation.tweenSpec]
-                      as TweenSpec)[GradientProperty.end]!
-                  is Tween<AlignmentGeometry?>
+                      // as TweenSpec)[GradientProperty.end]!
+                      as Map<GradientProperty, Tween<dynamic>>)[
+                  GradientProperty.end]! is Tween<AlignmentGeometry?>
               : true,
           'If [GradientProperty.end] is employed, '
           'ensure the [tween] is a [Tween<AlignmentGeometry?>].');
       assert(
-          (storyboard[GradientAnimation.tweenSpec] as TweenSpec)
+          // (storyboard[GradientAnimation.tweenSpec] as TweenSpec)
+          (storyboard[GradientAnimation.tweenSpec]
+                      as Map<GradientProperty, Tween<dynamic>>)
                   .containsKey(GradientProperty.center)
               ? (storyboard[GradientAnimation.tweenSpec]
-                      as TweenSpec)[GradientProperty.center]!
-                  is Tween<AlignmentGeometry?>
+                      // as TweenSpec)[GradientProperty.center]!
+                      as Map<GradientProperty, Tween<dynamic>>)[
+                  GradientProperty.center]! is Tween<AlignmentGeometry?>
               : true,
           'If [GradientProperty.center] is employed, '
           'ensure the [tween] is a [Tween<AlignmentGeometry?>].');
       assert(
-          (storyboard[GradientAnimation.tweenSpec] as TweenSpec)
+          // (storyboard[GradientAnimation.tweenSpec] as TweenSpec)
+          (storyboard[GradientAnimation.tweenSpec]
+                      as Map<GradientProperty, Tween<dynamic>>)
                   .containsKey(GradientProperty.radius)
               ? (storyboard[GradientAnimation.tweenSpec]
-                  as TweenSpec)[GradientProperty.radius]! is Tween<double>
+                  // as TweenSpec)[GradientProperty.radius]! is Tween<double>
+                  as Map<GradientProperty,
+                      Tween<dynamic>>)[GradientProperty.radius]! is Tween<
+                  double>
               : true,
           'If [GradientProperty.radius] is employed, '
           'ensure the [tween] is a [Tween<double>].');
       assert(
-          (storyboard[GradientAnimation.tweenSpec] as TweenSpec)
+          // (storyboard[GradientAnimation.tweenSpec] as TweenSpec)
+          (storyboard[GradientAnimation.tweenSpec]
+                      as Map<GradientProperty, Tween<dynamic>>)
                   .containsKey(GradientProperty.focal)
               ? (storyboard[GradientAnimation.tweenSpec]
-                      as TweenSpec)[GradientProperty.focal]!
-                  is Tween<AlignmentGeometry?>
+                      // as TweenSpec)[GradientProperty.focal]!
+                      as Map<GradientProperty, Tween<dynamic>>)[
+                  GradientProperty.focal]! is Tween<AlignmentGeometry?>
               : true,
           'If [GradientProperty.focal] is employed, '
           'ensure the [tween] is a [Tween<AlignmentGeometry?>].');
       assert(
-          (storyboard[GradientAnimation.tweenSpec] as TweenSpec)
+          // (storyboard[GradientAnimation.tweenSpec] as TweenSpec)
+          (storyboard[GradientAnimation.tweenSpec]
+                      as Map<GradientProperty, Tween<dynamic>>)
                   .containsKey(GradientProperty.focalRadius)
               ? (storyboard[GradientAnimation.tweenSpec]
-                  as TweenSpec)[GradientProperty.focalRadius]! is Tween<double>
+                      // as TweenSpec)[GradientProperty.focalRadius]!
+                      //is Tween<double>
+                      as Map<GradientProperty, Tween<dynamic>>)[
+                  GradientProperty.focalRadius]! is Tween<double>
               : true,
           'If [GradientProperty.focalRadius] is employed, '
           'ensure the [tween] is a [Tween<double>].');
       assert(
-          (storyboard[GradientAnimation.tweenSpec] as TweenSpec)
+          // (storyboard[GradientAnimation.tweenSpec] as TweenSpec)
+          (storyboard[GradientAnimation.tweenSpec]
+                      as Map<GradientProperty, Tween<dynamic>>)
                   .containsKey(GradientProperty.startAngle)
               ? (storyboard[GradientAnimation.tweenSpec]
-                  as TweenSpec)[GradientProperty.startAngle]! is Tween<double>
+                      // as TweenSpec)[GradientProperty.startAngle]!
+                      //is Tween<double>
+                      as Map<GradientProperty, Tween<dynamic>>)[
+                  GradientProperty.startAngle]! is Tween<double>
               : true,
           'If [GradientProperty.startAngle] is employed, '
           'ensure the [tween] is a [Tween<double>].');
       assert(
-          (storyboard[GradientAnimation.tweenSpec] as TweenSpec)
+          // (storyboard[GradientAnimation.tweenSpec] as TweenSpec)
+          (storyboard[GradientAnimation.tweenSpec]
+                      as Map<GradientProperty, Tween<dynamic>>)
                   .containsKey(GradientProperty.endAngle)
               ? (storyboard[GradientAnimation.tweenSpec]
-                  as TweenSpec)[GradientProperty.endAngle]! is Tween<double>
+                  // as TweenSpec)[GradientProperty.endAngle]! is Tween<double>
+                  as Map<GradientProperty,
+                      Tween<dynamic>>)[GradientProperty.endAngle]! is Tween<
+                  double>
               : true,
           'If [GradientProperty.endAngle] is employed, '
           'ensure the [tween] is a [Tween<double>].');
       assert(
-          (storyboard[GradientAnimation.tweenSpec] as TweenSpec)
+          // (storyboard[GradientAnimation.tweenSpec] as TweenSpec)
+          (storyboard[GradientAnimation.tweenSpec]
+                      as Map<GradientProperty, Tween<dynamic>>)
                   .containsKey(GradientProperty.softness)
               ? (storyboard[GradientAnimation.tweenSpec]
-                  as TweenSpec)[GradientProperty.softness]! is Tween<double>
+                  // as TweenSpec)[GradientProperty.softness]! is Tween<double>
+                  as Map<GradientProperty,
+                      Tween<dynamic>>)[GradientProperty.softness]! is Tween<
+                  double>
               : true,
           'If [GradientProperty.softness] is employed, '
           'ensure the [tween] is a [Tween<double>].');
       assert(
-          (storyboard[GradientAnimation.tweenSpec] as TweenSpec)
+          // (storyboard[GradientAnimation.tweenSpec] as TweenSpec)
+          (storyboard[GradientAnimation.tweenSpec]
+                      as Map<GradientProperty, Tween<dynamic>>)
                   .containsKey(GradientProperty.shadeFactor)
               ? (storyboard[GradientAnimation.tweenSpec]
-                  as TweenSpec)[GradientProperty.shadeFactor]! is Tween<num>
+                  // as TweenSpec)[GradientProperty.shadeFactor]! is Tween<num>
+                  as Map<GradientProperty,
+                      Tween<dynamic>>)[GradientProperty.shadeFactor]! is Tween<
+                  num>
               : true,
           'If [GradientProperty.shadeFactor] is employed, '
           'ensure the [tween] is a [Tween<num>].');
       assert(
-          (storyboard[GradientAnimation.tweenSpec] as TweenSpec)
+          // (storyboard[GradientAnimation.tweenSpec] as TweenSpec)
+          (storyboard[GradientAnimation.tweenSpec]
+                      as Map<GradientProperty, Tween<dynamic>>)
                   .containsKey(GradientProperty.distance)
               ? (storyboard[GradientAnimation.tweenSpec]
-                  as TweenSpec)[GradientProperty.distance]! is Tween<double>
+                  // as TweenSpec)[GradientProperty.distance]! is Tween<double>
+                  as Map<GradientProperty,
+                      Tween<dynamic>>)[GradientProperty.distance]! is Tween<
+                  double>
               : true,
           'If [GradientProperty.distance] is employed, '
           'ensure the [tween] is a [Tween<double>].');

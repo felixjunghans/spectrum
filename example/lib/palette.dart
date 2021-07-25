@@ -6,10 +6,10 @@ import 'package:spectrum/spectrum.dart';
 /// Create a [new GenerateComplements] and provide a required [color] and
 /// [count] to return a [SingleChildScrollView] with [Wrap]ped containers
 /// that are padded and progress in color through the `List<Color>` formed
-/// by `color.generateComplements(count)`.
+/// by `color.complementary(count)`.
 class GenerateComplements extends StatelessWidget {
   /// A column of color squares demonstrating the
-  /// `Color.generateComplements()` method.
+  /// `Color.complementary()` method.
   ///
   /// Also consider getters such as `Color.complementPair` or
   /// `Color.complementTetrad`.
@@ -22,7 +22,7 @@ class GenerateComplements extends StatelessWidget {
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: Wrap(children: [
-        for (var c in color.generateComplements(count))
+        for (var c in color.complementary(count))
           Container(
             width: 60,
             height: 60,

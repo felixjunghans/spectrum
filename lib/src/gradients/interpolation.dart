@@ -8,7 +8,7 @@
 ///
 /// Through the variety of named constructors for [PrimitiveGradient], some
 /// combination of interpolation is employed to achieve the required results.
-library spectrum;
+library gradients;
 
 import 'dart:collection' as collection;
 import 'dart:math' as math;
@@ -16,8 +16,8 @@ import 'dart:ui' as ui;
 
 import 'common.dart';
 import 'models.dart';
-import 'steps.dart';
-import 'steps_shaded.dart';
+import 'steps/shaded.dart';
+import 'steps/steps.dart';
 import 'tween.dart';
 
 /// Incorporate a `List<double>` [b] into list [a] over a period of time ranging

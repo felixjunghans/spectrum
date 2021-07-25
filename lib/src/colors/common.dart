@@ -1,7 +1,7 @@
 /// Common exports and functions.
 /// - [ComponentRestriction] `num.restricted`
 /// - [alphaFromStrength]
-library spectrum;
+library colors;
 
 import 'package:flutter/material.dart' show Color;
 

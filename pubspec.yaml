@@ -1,15 +1,15 @@
 name: spectrum
 description: >
-  A rainbow of Color and Gradient utilities; including GradientTweens,
-  Gradient.copyWith(), Steps-type gradients, Color.generateComplements(),
-  AnimatedGradients, MaterialColor generation, and more!
+  A rainbow of Color and Gradient utilities. Interpolate intermediate gradients
+  with a realized GradientTween & new type Steps as well as shaded varieties.
+  Color generation & operators.
 
-version: 0.2.0
+version: 0.2.1
 repository: https://github.com/Zabadam/spectrum
 issue_tracker: https://github.com/Zabadam/spectrum/issues
 
 environment:
-  sdk: ">=2.13.0 <3.0.0"
+  sdk: ">=2.12.0 <3.0.0"
   flutter: ">=1.17.0"
 
 dependencies:

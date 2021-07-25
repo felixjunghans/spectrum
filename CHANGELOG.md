@@ -1,5 +1,12 @@
-# spectrum
-## **[0.2.0]** - 03 JUL 21
+# ![spectrum header image](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/img/spectrum_50.gif)
+## **[0.2.1]** - 25 JUL 21
+Reverts usage of Dart @ 2.13 non-function type aliases (AKA `typedef`s) as they
+were throwing `dartdoc`.
+- "`failed: Bad state: typedef GradientStoryboard = Map<GradientAnimation, dynamic> cannot have parameters`"
+
+Simplifies name of `Color.generateComplements(5)` -> `Color.complementary(5)`.
+
+## **[0.2.0]** - 23 JUL 21
 Massive "fleshing out" of the project, establishing remaining goals.
 
 - Added `FooShadedSteps`

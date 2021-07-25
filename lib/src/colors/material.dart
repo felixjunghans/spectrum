@@ -1,7 +1,7 @@
 /// Provides [MaterialColor]-related functionality, specifically the generation
 /// of `ColorSwatch<int>`s which can fulfill the [new MaterialColor] `swatch`
 /// property by consider [SwatchMode] styles.
-library spectrum;
+library colors;
 
 import 'common.dart';
 
@@ -299,7 +299,7 @@ Map<int, Color> mapSwatchByOpacity(
 /// with the appropriate keys to form a `ColorSwatch<int>._swatch`,
 /// which can fulfill the [new MaterialColor] `swatch` property.
 ///
-/// Acquires a `List<Color>` by [primary] with `generateComplements(10)`.
+/// Acquires a `List<Color>` by [primary] with `complementary(10)`.
 ///
 /// - `050`: `primary.withOpacity(0.1)`
 /// - `100`: `primary.withOpacity(0.2)`
@@ -308,7 +308,7 @@ Map<int, Color> mapSwatchByOpacity(
 /// - `900`: `primary.withOpacity(1.0)`
 Map<int, Color> mapSwatchByComplements(Color primary, {bool isPrimary = true}) {
   // final complements = primary.complementDeca;
-  final complements = primary.generateComplements(
+  final complements = primary.complementary(
       isPrimary ? kShadeCountMaterialColor : kShadeCountMaterialAccent);
   return isPrimary
       ? {

@@ -1,9 +1,9 @@
-/// Provide relevantly Typed `Gradient`s for smooth tweens.
-library spectrum;
+/// Provide relevantly typed "Nill" `Gradient`s for smooth tweens to emptiness.
+library gradients;
 
 import 'common.dart';
 
-import 'steps.dart';
+import 'steps/steps.dart';
 
 /// A wrapper for retrieving transparent, empty `Gradient`s appropriate for
 /// smooth `GradientTween`s.
@@ -23,7 +23,7 @@ extension NillGradients on Gradient {
   /// one is available. If `this` gradient's type is not pre-mapped to an empty,
   /// transparent "nill" gradient, `this` is copied with a number of pre-set
   /// "nill"-style properties, such as transparent colors, 0 radius,
-  /// stops [1.0, 1.0], etc.
+  /// stops `[1.0, 1.0]`, etc.
   ///
   /// `Gradient.copyWith` itself falls back to returning a [new RadialGradient]
   /// if type cannot be matched.
@@ -32,9 +32,6 @@ extension NillGradients on Gradient {
   ///
   ///     final radialGradient = RadialGradient(. . .);
   ///     final emptyRadialGradient = radialGradient.asNill;
-  ///
-  /// ---
-  /// TODO: Implement [GradientCopyWith]
   Gradient get asNill =>
       nillify(runtimeType) ??
       copyWith(
@@ -59,6 +56,9 @@ extension NillGradients on Gradient {
   /// Used as:
   ///
   ///     final emptyRadialGradient = NillGradients.nillify(RadialGradient);
+  ///
+  /// ---
+  /// TODO: Implement [GradientCopyWith]
   static Gradient? nillify(Type type) => (type == LinearGradient)
       ? linear
       : (type == RadialGradient)

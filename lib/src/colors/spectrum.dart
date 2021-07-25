@@ -5,7 +5,7 @@
 ///
 /// [MaterialColor] or [MaterialAccentColor] -> `List<Color>` by extensions
 /// [MaterialColorToList] and [MaterialAccentToList].
-library spectrum;
+library colors;
 
 import 'common.dart';
 
@@ -148,7 +148,7 @@ extension SpectrumUtils on Color {
   ///
   ///     [this, -this]
   ///
-  /// This getter is more optimized than `generateComplements(2)`.
+  /// This getter is more optimized than `complementary(2)`.
   List<Color> get complementPair => [this, -this];
 
   /// Returns a three-entry `List<Color>` containing `this` and two versions of
@@ -156,7 +156,7 @@ extension SpectrumUtils on Color {
   ///
   ///     [this == RGB, BRG, GBR]
   ///
-  /// This getter is more optimized than `generateComplements(3)`.
+  /// This getter is more optimized than `complementary(3)`.
   List<Color> get complementTriad => [
         this,
         Color.fromARGB(alpha, blue, red, green),
@@ -167,36 +167,36 @@ extension SpectrumUtils on Color {
   // /// equidistant colors obtained by traveling the color wheel clockwise
   // /// starting with `this` and wrapping around the wheel back to `this`.
   // ///
-  // /// Calls [generateComplements] with `count: 4`.
+  // /// Calls [complementary] with `count: 4`.
   // ///
   // /// (The final entry does not match `this`, it is the complement just
   // /// before it.)
-  // List<Color> get complementTetrad => generateComplements(4);
+  // List<Color> get complementTetrad => complementary(4);
 
   // /// Returns a five-entry `List<Color>` containing `this` and the four
   // /// equidistant colors obtained by traveling the color wheel clockwise
   // /// starting with `this` and wrapping around the wheel back to `this`.
   // ///
-  // /// Calls [generateComplements] with `count: 5`.
+  // /// Calls [complementary] with `count: 5`.
   // ///
   // /// (The final entry does not match `this`, it is the complement just
   // /// before it.)
-  // List<Color> get complementPentad => generateComplements(5);
+  // List<Color> get complementPentad => complementary(5);
 
   // /// Returns a ten-entry `List<Color>` containing `this` and the nine
   // /// equidistant colors obtained by traveling the color wheel clockwise
   // /// starting with `this` and wrapping around the wheel back to `this`.
   // ///
-  // /// Calls [generateComplements] with `count: 10`. Could be used to generate
+  // /// Calls [complementary] with `count: 10`. Could be used to generate
   // /// a rainbow swatch palette starting at a given color.
   // ///
   // /// (The final entry does not match `this`, it is the complement just
   // /// before it.)
-  // List<Color> get complementDecad => generateComplements(10);
+  // List<Color> get complementDecad => complementary(10);
 
   /// The number of `Color`s returned in this `List` will match [count], and
   /// the original color `this` will be first amongst them.
-  List<Color> generateComplements(int count, [double? distance]) {
+  List<Color> complementary(int count, [double? distance]) {
     double wrap(double component, double d) {
       final sum = component + d;
       if (sum >= 0 && sum <= 360) return sum;

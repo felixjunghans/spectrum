@@ -1,11 +1,11 @@
 /// Common exports & methods
-library spectrum;
+library gradients;
 
 import 'package:flutter/material.dart';
 
 import 'interpolation.dart';
 import 'models.dart';
-import 'steps.dart';
+import 'steps/steps.dart';
 import 'tween.dart';
 import 'utils.dart';
 

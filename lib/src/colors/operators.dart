@@ -3,7 +3,7 @@
 /// Also exposes these operators through methods in [ColorOperatorsMethods] that
 /// also introduce `strength` support to shortcut override opacity/alpha with a
 /// single dynamic value, `0..1` or `2..255`.
-library spectrum;
+library colors;
 
 import 'common.dart';
 
@@ -153,27 +153,27 @@ extension ColorOperators on Color {
 
 /// - [inverted], for returning `-this`
 /// - [compareLuminance], for returning the brighter or darker `Color`
-///   utilizing [>]
-/// - [or], for randomization by `Color` [|] `List<Color>`
+///   utilizing `>`
+/// - [or], for randomization by `Color | List<Color>`
 ///
 /// The following methods resemble the operator counterparts but they have a
 /// slot for provision of a `strength` or alpha/opacity override
 /// (see [alphaFromStrength] for details):
-/// - [add], to [+] one `Color` to another
-/// - [subtract], to [-] one `Color` from another
-/// - [average], to [~/] all channels of two `Color`s
+/// - [add], to `+` one `Color` to another
+/// - [subtract], to `-` one `Color` from another
+/// - [average], to `~/` all channels of two `Color`s
 extension ColorOperatorsMethods on Color {
   /// Invert [red], [green] and [blue] channels of `this`, maintaining [alpha].
   Color get inverted => -this;
 
-  /// Exposure `method` for [>] `operator`.
+  /// Exposure `method` for `>` operator.
   ///
   /// Parameter [returnBrighter] is `true` by default, and so `this` color will
   /// be returned if it is brighter than [other]. If `this` color is brighter
   /// than [other] and [returnBrighter] is `false`, then [other] is returned
   /// instead.
   ///
-  /// The matter of being "brighter" is determined by the [>] operator, which
+  /// The matter of being "brighter" is determined by the `>` operator, which
   /// compares the colors using [computeLuminance]. \
   /// "This value is computationally expensive to calculate."
   Color compareLuminance(Color other, {bool returnBrighter = true}) =>
@@ -185,7 +185,7 @@ extension ColorOperatorsMethods on Color {
               ? other
               : this;
 
-  /// Exposure `method` for [|] `operator`: random `Color` access.
+  /// Exposure `method` for `|` operator: random `Color` access.
   ///
   /// If `others is Color`, the return value is `this` or `others`.
   ///
@@ -200,7 +200,7 @@ extension ColorOperatorsMethods on Color {
   /// See [alphaFromStrength] for details on using a value between `0..1` or
   /// `2..255` as a shortcut for specifying alpha/opacity override.
   ///
-  /// Exposure `method` for [+] `operator`, providing [strength].
+  /// Exposure `method` for `+` operator, providing [strength].
   Color add(Color other, [dynamic strength]) =>
       withAlpha(alphaFromStrength(strength) ?? alpha) + other;
 
@@ -217,7 +217,7 @@ extension ColorOperatorsMethods on Color {
   /// See [alphaFromStrength] for details on using a value between `0..1` or
   /// `2..255` as a shortcut for specifying alpha/opacity override.
   ///
-  /// Exposure `method` for [-] `operator`, providing [strength].
+  /// Exposure `method` for `-` operator, providing [strength].
   Color subtract(Color other, [dynamic strength]) =>
       withAlpha(alphaFromStrength(strength) ?? alpha) - other;
 
@@ -229,7 +229,7 @@ extension ColorOperatorsMethods on Color {
   /// See [alphaFromStrength] for details on using a value between `0..1` or
   /// `2..255` as a shortcut for specifying alpha/opacity override.
   ///
-  /// Exposure `method` for [~/] `operator`.
+  /// Exposure `method` for `~/` operator, providing [strength].
   Color average(Color other, [dynamic strength]) =>
       withAlpha(alphaFromStrength(strength) ?? alpha) ~/ other;
 }

@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 
 import 'package:foil/foil.dart';
-import 'package:spectrum/spectrum.dart';
+
+// Modular:
+import 'package:spectrum/colors.dart';
+import 'package:spectrum/gradients.dart';
+// All in One:
+// import 'package:spectrum/spectrum.dart';
 
 import 'palette.dart';
 
@@ -68,25 +73,25 @@ class _ExampleState extends State<Example> {
       // colors: color.asMaterialColor.asList,
       colors: Spectrum.materialColor(color, mode: SwatchMode.shade, factor: 450)
           .asList,
-      // colors: color.generateComplements(5),
-      // colors: color.generateComplements(18),
-      // colors: color.generateComplements(36),
+      // colors: color.complementary(5),
+      // colors: color.complementary(18),
+      // colors: color.complementary(36),
     );
 
     final gradient2 = SweepShadedSteps(
       center: const Alignment(-0.3, -1.25),
-      colors: color.generateComplements(18),
+      colors: color.complementary(18),
       // shadeFunction: Shades.withAlpha,
       // softness: 0.005,
       // shadeFactor: 175,
       shadeFactor: -150,
     );
 
-    final radialSteps = RadialSteps(colors: color.generateComplements(18));
+    final radialSteps = RadialSteps(colors: color.complementary(18));
     final linearSteps =
-        LinearSteps(colors: (const Color(0xFF4BFF6F)).generateComplements(5));
+        LinearSteps(colors: (const Color(0xFF4BFF6F)).complementary(5));
     final sweepSteps =
-        SweepSteps(colors: (const Color(0xFF71F2F0)).generateComplements(4));
+        SweepSteps(colors: (const Color(0xFF71F2F0)).complementary(4));
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -162,7 +167,7 @@ class _ExampleState extends State<Example> {
           /// FooShadedSteps.shadeFactor demonstration
           AnimatedFoilDemo(
             LinearShadedSteps(
-              colors: (const Color(0xFF4BFF6F)).generateComplements(4),
+              colors: (const Color(0xFF4BFF6F)).complementary(4),
             ),
             isSlow: false,
             isAgressive: true,
@@ -176,11 +181,11 @@ class _ExampleState extends State<Example> {
           ),
 
           /// A column of color squares demonstrating the
-          /// `Color.generateComplements()` method.
+          /// `Color.complementary()` method.
           const Palette(),
 
           /// A column of color squares demonstrating the
-          /// `Color.generateComplements()` method.
+          /// `Color.complementary()` method.
           ///
           /// Also consider getters such as `Color.complementPair` or
           /// `Color.complementTetrad`.
@@ -275,13 +280,13 @@ class _HeaderState extends State<Header> with SingleTickerProviderStateMixin {
       child: ShaderMask(
         // shaderCallback: (bounds) => GradientTween(
         //   begin: RadialShadedSteps(
-        //     // colors: _color.value!.generateComplements(10),
+        //     // colors: _color.value!.complementary(10),
         //     colors: _color.value!.asMaterialColor.asList,
         //     radius: 4,
         //     shadeFactor: 200,
         //   ),
         //   end: LinearGradient(
-        //     colors: _color.value!.withWhite(50).generateComplements(6),
+        //     colors: _color.value!.withWhite(50).complementary(6),
         //   ),
         //   isAgressive: false,
         // ).evaluate(_controller)!.createShader(bounds),
@@ -289,13 +294,13 @@ class _HeaderState extends State<Header> with SingleTickerProviderStateMixin {
           controller: _controller,
           gradient: GradientTween(
             begin: RadialShadedSteps(
-              // colors: _color.value!.generateComplements(10),
+              // colors: _color.value!.complementary(10),
               colors: _color.value!.asMaterialColor.asList,
               radius: 4,
               shadeFactor: 200,
             ),
             end: LinearGradient(
-              colors: _color.value!.withWhite(50).generateComplements(6),
+              colors: _color.value!.withWhite(50).complementary(6),
             ),
             isAgressive: false,
           ).evaluate(_controller)!,
@@ -374,7 +379,8 @@ class AnimatedFoilDemo extends StatefulWidget {
   }) : super(key: key);
 
   final Gradient gradient;
-  final GradientStoryboard? storyboard;
+  // final GradientStoryboard? storyboard;
+  final Map<GradientAnimation, dynamic>? storyboard;
   final Duration duration;
   final Interval interval;
   final bool isSlow, isAgressive;

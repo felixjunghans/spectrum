@@ -11,14 +11,14 @@
 ///   - Method `Gradient.animate`, returning the [AnimatedGradient.observe]
 ///   animated `Gradient` from an `AnimatedGradient` constructed by `this`
 ///   gradient and the method parameters.
-library spectrum;
+library gradients;
 
 import 'animation.dart';
 import 'common.dart';
 import 'interpolation.dart';
 import 'models.dart';
-import 'steps.dart';
-import 'steps_shaded.dart';
+import 'steps/shaded.dart';
+import 'steps/steps.dart';
 import 'tween.dart';
 
 /// {@template GradientCopyWith}
@@ -180,12 +180,8 @@ extension GradientUtils on Gradient {
   /// Default is [Maths.subtraction].
   Gradient animate({
     required Animation<double> controller,
-    GradientStoryboard storyboard = AnimatedGradient.defaultStoryboard,
-    // GradientAnimation style = GradientAnimation.colorArithmetic,
-    // required GradientAnimation style,
-    // ColorArithmetic colorShading = Shades.withOpacity,
-    // StopsArithmetic stopsArithmetic = Maths.subtraction,
-    // TweenSpec tweenSpec = const {},
+    // GradientStoryboard storyboard = AnimatedGradient.defaultStoryboard,
+    Map<GradientAnimation, dynamic> storyboard = const {},
     GradientCopyWith overrideCopyWith = spectrumCopyWith,
   }) =>
       AnimatedGradient(
