@@ -14,13 +14,14 @@ class Shade {
   const Shade({required this.function, required this.factor});
 
   /// A `ColorArithmetic` is a function that returns a [Color] after accepting
-  /// and considering a `Color` and an `int` [factor]. The default
-  /// `ColorArithmetic` function for `FooShadedSteps` is [Shades.withWhite],
-  /// where a positive value lightens the color and negative values darken it.
+  /// and considering a `Color` and an `int` [factor].
+  ///
+  /// Consider `ColorArithmetic` function [Shades.withWhite], a positive value
+  /// lightens the color and negative values darken it.
   final ColorArithmetic function;
 
   /// The `factor` to provide to [function].
-  final num factor;
+  final double factor;
 }
 
 /// Defines the [distance] and [softness] for step shading.

@@ -6,7 +6,6 @@ library gradients;
 import 'dart:math' as math;
 
 import 'common.dart';
-import 'interpolation.dart';
 import 'steps/steps.dart';
 
 /// An interpolation between two `Gradient`s.
@@ -222,11 +221,8 @@ class IntermediateGradient extends Gradient {
             : stops;
 
     return _copyWith(
-      packet.gradient is RadialGradient
-          ? RadialGradient(colors: safeColors)
-          : packet.gradient is SweepGradient
-              ? SweepGradient(colors: safeColors)
-              : LinearGradient(colors: safeColors),
+      packet.gradient,
+      colors: safeColors,
       stops: safeStops,
       transform: packet.transform,
       tileMode: packet.tileMode,
@@ -238,6 +234,10 @@ class IntermediateGradient extends Gradient {
       focalRadius: packet.focalRadius,
       startAngle: packet.startAngle,
       endAngle: packet.endAngle,
+      softness: packet.softness,
+      shadeFunction: packet.shadeFunction,
+      shadeFactor: packet.shadeFactor,
+      distance: packet.distance,
     );
   }
 }

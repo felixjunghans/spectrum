@@ -11,7 +11,9 @@ import 'utils.dart';
 
 export 'package:flutter/material.dart';
 
+export '../colors/common.dart' show ComponentRestriction;
 export '../colors/shading.dart';
+export 'interpolation.dart';
 export 'utils.dart';
 
 /// Receiving a potentially `null` list of [stops] and a concrete [colorCount]:
@@ -82,7 +84,7 @@ Gradient spectrumCopyWith(
   double? softness,
   // Shaded Steps
   ColorArithmetic? shadeFunction,
-  num? shadeFactor,
+  double? shadeFactor,
   double? distance,
 }) =>
     original.copyWith(

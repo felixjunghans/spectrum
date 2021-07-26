@@ -74,6 +74,8 @@ enum GradientAnimation {
 /// [ImplicitlyAnimatedWidget] and handle their own [AnimationController].
 /// But since this `AnimatedGradient` is not intended to ever be built,
 /// there is no means for managing the lifecycle of said controller.
+/// - If this `Widget` is treed out and built, however, the return is a
+///   [DecoratedBox] whose gradient is set to [observe].
 ///
 /// Use a [new AnimatedGradient] and its [observe] property for [Gradient]-type
 /// return, provided some `Animation<double> controller`, to drive a
@@ -84,14 +86,14 @@ class AnimatedGradient extends AnimatedWidget {
   /// to drive a customizable animation on the [gradientInput] by tweaking
   /// the [storyboard] map of [GradientAnimation]s.
   ///
-  /// Provide a `Tween<double>().animate()` or an [AnimationController]
-  /// as `controller` to drive the flow of the animation. Consider
-  /// driving the [AnimationController] by `controller.repeat(reverse:true)`.
+  /// Provide, for example, an [AnimationController] as `controller` to push the
+  /// flow of the animation. Consider driving the controller by
+  /// `controller.repeat(reverse:true)`.
   ///
   /// Not intended to have [build] called like a true `Widget`. \
   /// Instead opt to [observe] the [Gradient]-type output.
-  /// - This `build()` method will return a [DecoratedBox] \
-  ///   whose gradient is set to [observe].
+  /// - If this `Widget` is treed out and built, however, the return is a
+  ///   [DecoratedBox] whose gradient is set to [observe].
   ///
   /// ## Animated Gradient Storyboard `Map`
   /// A "Gradient Storyboard" value provided as [storyboard] maps
@@ -133,17 +135,6 @@ class AnimatedGradient extends AnimatedWidget {
         _gradient = gradient,
         super(key: key, listenable: controller);
 
-  // /// The default [GradientStoryboard] for a [new AnimatedGradient].
-  // // ///
-  // // /// This storyboard maps [GradientAnimation.colorArithmetic] to
-  // // /// [Shades.withOpacity] and [GradientAnimation.stopsArithmetic] to
-  // // /// [Maths.subtraction], providing both of these animation transformations
-  // // /// to the [AnimatedGradient.observe] output.
-  // static const GradientStoryboard defaultStoryboard = {
-  //   // GradientAnimation.colorArithmetic: Shades.withOpacity,
-  //   // GradientAnimation.stopsArithmetic: Maths.subtraction,
-  // };
-
   /// The provided `Animation<double>` from construction, accessed as
   /// `super.listenable`.
   Animation<double> get animation => listenable as Animation<double>;
@@ -177,45 +168,6 @@ class AnimatedGradient extends AnimatedWidget {
   /// ---
   /// {@macro GradientCopyWith}
   final GradientCopyWith _copyWith;
-
-  // /// - [GradientAnimation.colorArithmetic] allows the provision of a
-  // /// [ColorArithmetic] type function as [colorArithmetic]. This function
-  // /// returns a `Color` and accepts a `Color color` and a `num factor`.
-  // ///   - See [Shades] for some pre-built color shading functions.
-  // ///   - Default is [Shades.withOpacity] as it beautifully handles default
-  // ///   values ranging `0..1` from an [AnimationController].
-  // /// ---
-  // /// - [GradientAnimation.stopsArithmetic] allows the provision of a
-  // /// [StopsArithmetic] type function as [stopsArithmetic]. This function
-  // /// returns a `double` and accepts a `double stop` and a `double factor`.
-  // ///   - See [Maths] for some pre-built stops math functions.
-  // ///   - Default is [Maths.multiplication] as it handles default
-  // ///   values ranging `0..1` from an [AnimationController] well.
-  // /// ---
-  // /// - [GradientAnimation.none] disables any transformations, returning the
-  // /// [gradientInput] as the output from [observe].
-  // final GradientAnimation style;
-
-  // /// Only applicable if [style] is [GradientAnimation.colorArithmetic].
-  // ///
-  // /// See [Shades] for some pre-built [ColorArithmetic] functions.
-  // ///
-  // /// Default is [Shades.withOpacity].
-  // final ColorArithmetic colorArithmetic;
-
-  // /// Only applicable if [style] is [GradientAnimation.stopsArithmetic].
-  // ///
-  // /// See [Maths] for some pre-built [StopsArithmetic] functions.
-  // ///
-  // /// Default is [Maths.subtraction].
-  // final StopsArithmetic stopsArithmetic;
-
-  // /// A `TweenSpec` is a `Map` of [GradientProperty]s to respective [Tween]s.
-  // ///
-  // /// `GradientProperty`s are potential gradient properties for tweenage,
-  // /// notably excluding `colors`, `stops`, `transform`, & `tileMode`,
-  // /// as well as `shadeFunction` for `FooShadedSteps`.
-  // final TweenSpec tweenSpec;
 
   /// Observe the output `Gradient` which applies modifications to the
   /// [gradientInput] based on the [animation] and other provided properties,
@@ -462,10 +414,10 @@ class AnimatedGradient extends AnimatedWidget {
                   // as TweenSpec)[GradientProperty.shadeFactor]! is Tween<num>
                   as Map<GradientProperty,
                       Tween<dynamic>>)[GradientProperty.shadeFactor]! is Tween<
-                  num>
+                  double>
               : true,
           'If [GradientProperty.shadeFactor] is employed, '
-          'ensure the [tween] is a [Tween<num>].');
+          'ensure the [tween] is a [Tween<double>].');
       assert(
           // (storyboard[GradientAnimation.tweenSpec] as TweenSpec)
           (storyboard[GradientAnimation.tweenSpec]

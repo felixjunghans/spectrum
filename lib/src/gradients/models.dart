@@ -10,21 +10,43 @@
 library gradients;
 
 import 'common.dart';
+import 'steps/steps.dart';
 
 /// Potential gradient properties for tweenage, notably excluding
 /// `colors`, `stops`, `transform`, & `tileMode`,
 /// as well as `shadeFunction` for `FooShadedSteps`.
 enum GradientProperty {
+  /// Potential [LinearGradient] property.
   begin,
+
+  /// Potential [LinearGradient] property.
   end,
+
+  /// Potential [RadialGradient] or [SweepGradient] property.
   center,
+
+  /// Potential [RadialGradient] property.
   radius,
+
+  /// Potential [RadialGradient] property.
   focal,
+
+  /// Potential [RadialGradient] property.
   focalRadius,
+
+  /// Potential [SweepGradient] property.
   startAngle,
+
+  /// Potential [SweepGradient] property.
   endAngle,
+
+  /// Potential [Steps] or `FooShadedSteps` property.
   softness,
+
+  /// Potential `FooShadedSteps` property.
   shadeFactor,
+
+  /// Potential `FooShadedSteps` property.
   distance,
 }
 
@@ -46,23 +68,18 @@ abstract class Shades {
   /// A positive factor lightens the color, a negative factor darkens it.
   /// Clamped to appropriate range. Factor is `round()`ed to an `int`.
   static Color withWhite(Color color, double factor) =>
-      color.withWhite(factor.round());
+      color.withWhite(factor.restricted);
 
   /// A positive factor darkens the color, while a negative factor lightens it.
   /// Clamped to appropriate range. Factor is `round()`ed to an `int`.
   static Color withBlack(Color color, double factor) =>
-      color.withBlack(factor.round());
+      color.withBlack(factor.restricted);
 
   /// A factor between `0..254` represents a transparent color, while a
   /// factor of `255` will return the color entirely opaque. Factor is
-  /// `round()`ed to an `int`.
+  /// rounded to an `int`.
   static Color withAlpha(Color color, double factor) =>
-      color.withAlpha(factor.round());
-
-  /// A factor between `0..0.999` represents a transparent color, while a
-  /// factor of `1.0` will return the color entirely opaque.
-  static Color withOpacity(Color color, double factor) =>
-      color.withOpacity(factor);
+      color.withAlpha(factor.restricted);
 }
 
 /// A `StopsArithmetic` is a function that returns a [double] after accepting

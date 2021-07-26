@@ -72,7 +72,7 @@ typedef GradientCopyWith = Gradient Function(
   double? softness,
   // Shaded Steps
   ColorArithmetic? shadeFunction,
-  num? shadeFactor,
+  double? shadeFactor,
   double? distance,
 });
 
@@ -162,25 +162,21 @@ extension GradientUtils on Gradient {
       );
 
   /// Returns the [AnimatedGradient.observe] animated `Gradient` output from
-  /// a [new AnimatedGradient] constructed by `this` `Gradient` and the
+  /// a [new AnimatedGradient] constructed by `this` gradient and the
   /// provided parameters.
   ///
-  /// Provide a `Tween<double>().animate()` or an [AnimationController]
-  /// as `controller` to drive the flow of the animation. Consider
-  /// driving the [AnimationController] by `controller.repeat(reverse:true)`.
+  /// Provide, for example, an [AnimationController] as `controller` to push
+  /// the flow of the animation. Consider driving the controller by
+  /// `controller.repeat(reverse:true)`.
   ///
-  /// The default `style` is [GradientAnimation.colorArithmetic], which looks to
-  /// parameter `colorShading` for the function to invoke.
-  ///
-  /// The default `colorShading` is [Shades.withOpacity] which applies the
-  /// clamped animation value as each gradient color's opacity, between `0..1`.
-  ///
-  /// If `style == GradientAnimation.stopsArithmetic`, then function
-  /// `stopsArithmetic` applies the animation transformation.
-  /// Default is [Maths.subtraction].
+  /// The `storyboard` is a `Map<GradientAnimation, dynamic>` where `dynamic`
+  /// correlates to the given key.
+  /// - Map a [ColorArithmetic] to [GradientAnimation.colorArithmetic]
+  /// - Map a [StopsArithmetic] to [GradientAnimation.stopsArithmetic]
+  /// - Map a "TweenSpec", or `Map<GradientProperty, Tween<dynamic>>`
+  ///   to [GradientAnimation.tweenSpec]
   Gradient animate({
     required Animation<double> controller,
-    // GradientStoryboard storyboard = AnimatedGradient.defaultStoryboard,
     Map<GradientAnimation, dynamic> storyboard = const {},
     GradientCopyWith overrideCopyWith = spectrumCopyWith,
   }) =>
@@ -188,10 +184,6 @@ extension GradientUtils on Gradient {
         gradient: this,
         controller: controller,
         storyboard: storyboard,
-        // style: style,
-        // colorArithmetic: colorShading,
-        // stopsArithmetic: stopsArithmetic,
-        // tweenSpec: tweenSpec,
         overrideCopyWith: overrideCopyWith,
       ).observe;
 
@@ -220,7 +212,7 @@ extension GradientUtils on Gradient {
   ///   // Steps
   ///   double? softness
   ///   // Shaded Steps
-  ///   ColorArithmetic? shadeFunction, int? shadeFactor, double? distance
+  ///   ColorArithmetic? shadeFunction, double? shadeFactor, double? distance
   /// })
   /// ```
   Gradient copyWith({
@@ -245,7 +237,7 @@ extension GradientUtils on Gradient {
     double? softness,
     // Shaded Steps
     ColorArithmetic? shadeFunction,
-    num? shadeFactor,
+    double? shadeFactor,
     double? distance,
   }) {
     if (this is PrimitiveGradient) {
@@ -292,98 +284,98 @@ extension GradientUtils on Gradient {
         ),
       );
     } else if (this is LinearGradient) {
-      return LinearGradient(
-        colors: colors ?? this.colors,
-        stops: stops ?? this.stops,
-        transform: transform ?? this.transform,
-        tileMode: tileMode ?? this.tileMode,
-        begin: begin ?? this.begin,
-        end: end ?? this.end,
+      return (this as LinearGradient).copyWith(
+        colors: colors,
+        stops: stops,
+        transform: transform,
+        tileMode: tileMode,
+        begin: begin,
+        end: end,
       );
     } else if (this is SweepGradient) {
-      return SweepGradient(
-        colors: colors ?? this.colors,
-        stops: stops ?? this.stops,
-        transform: transform ?? this.transform,
-        tileMode: tileMode ?? this.tileMode,
-        center: center ?? this.center,
-        startAngle: startAngle ?? this.startAngle,
-        endAngle: endAngle ?? this.endAngle,
+      return (this as SweepGradient).copyWith(
+        colors: colors,
+        stops: stops,
+        transform: transform,
+        tileMode: tileMode,
+        center: center,
+        startAngle: startAngle,
+        endAngle: endAngle,
       );
     } else if (this is LinearShadedSteps) {
-      return LinearShadedSteps(
-        shadeFunction: shadeFunction ?? this.shadeFunction,
-        shadeFactor: shadeFactor ?? this.shadeFactor,
-        distance: distance ?? this.distance,
-        softness: softness ?? this.softness,
-        colors: colors ?? this.colors,
-        stops: stops ?? this.stops,
-        transform: transform ?? this.transform,
-        tileMode: tileMode ?? this.tileMode,
-        begin: begin ?? this.begin,
-        end: end ?? this.end,
+      return (this as LinearShadedSteps).copyWith(
+        shadeFunction: shadeFunction,
+        shadeFactor: shadeFactor,
+        distance: distance,
+        softness: softness,
+        colors: colors,
+        stops: stops,
+        transform: transform,
+        tileMode: tileMode,
+        begin: begin,
+        end: end,
       );
     } else if (this is RadialShadedSteps) {
-      return RadialShadedSteps(
-        shadeFunction: shadeFunction ?? this.shadeFunction,
-        shadeFactor: shadeFactor ?? this.shadeFactor,
-        distance: distance ?? this.distance,
-        softness: softness ?? this.softness,
-        colors: colors ?? this.colors,
-        stops: stops ?? this.stops,
-        transform: transform ?? this.transform,
-        tileMode: tileMode ?? this.tileMode,
-        center: center ?? this.center,
-        radius: radius ?? this.radius,
-        focal: focal ?? this.focal,
-        focalRadius: focalRadius ?? this.focalRadius,
+      return (this as RadialShadedSteps).copyWith(
+        shadeFunction: shadeFunction,
+        shadeFactor: shadeFactor,
+        distance: distance,
+        softness: softness,
+        colors: colors,
+        stops: stops,
+        transform: transform,
+        tileMode: tileMode,
+        center: center,
+        radius: radius,
+        focal: focal,
+        focalRadius: focalRadius,
       );
     } else if (this is SweepShadedSteps) {
-      return SweepShadedSteps(
-        shadeFunction: shadeFunction ?? this.shadeFunction,
-        shadeFactor: shadeFactor ?? this.shadeFactor,
-        distance: distance ?? this.distance,
-        softness: softness ?? this.softness,
-        colors: colors ?? this.colors,
-        stops: stops ?? this.stops,
-        transform: transform ?? this.transform,
-        tileMode: tileMode ?? this.tileMode,
-        center: center ?? this.center,
-        startAngle: startAngle ?? this.startAngle,
-        endAngle: endAngle ?? this.endAngle,
+      return (this as SweepShadedSteps).copyWith(
+        shadeFunction: shadeFunction,
+        shadeFactor: shadeFactor,
+        distance: distance,
+        softness: softness,
+        colors: colors,
+        stops: stops,
+        transform: transform,
+        tileMode: tileMode,
+        center: center,
+        startAngle: startAngle,
+        endAngle: endAngle,
       );
     } else if (this is LinearSteps) {
-      return LinearSteps(
-        softness: softness ?? this.softness,
-        colors: colors ?? this.colors,
-        stops: stops ?? this.stops,
-        transform: transform ?? this.transform,
-        tileMode: tileMode ?? this.tileMode,
-        begin: begin ?? this.begin,
-        end: end ?? this.end,
+      return (this as LinearSteps).copyWith(
+        softness: softness,
+        colors: colors,
+        stops: stops,
+        transform: transform,
+        tileMode: tileMode,
+        begin: begin,
+        end: end,
       );
     } else if (this is RadialSteps) {
-      return RadialSteps(
-        softness: softness ?? this.softness,
-        colors: colors ?? this.colors,
-        stops: stops ?? this.stops,
-        transform: transform ?? this.transform,
-        tileMode: tileMode ?? this.tileMode,
-        center: center ?? this.center,
-        radius: radius ?? this.radius,
-        focal: focal ?? this.focal,
-        focalRadius: focalRadius ?? this.focalRadius,
+      return (this as RadialSteps).copyWith(
+        softness: softness,
+        colors: colors,
+        stops: stops,
+        transform: transform,
+        tileMode: tileMode,
+        center: center,
+        radius: radius,
+        focal: focal,
+        focalRadius: focalRadius,
       );
     } else if (this is SweepSteps) {
-      return SweepSteps(
-        softness: softness ?? this.softness,
-        colors: colors ?? this.colors,
-        stops: stops ?? this.stops,
-        transform: transform ?? this.transform,
-        tileMode: tileMode ?? this.tileMode,
-        center: center ?? this.center,
-        startAngle: startAngle ?? this.startAngle,
-        endAngle: endAngle ?? this.endAngle,
+      return (this as SweepSteps).copyWith(
+        softness: softness,
+        colors: colors,
+        stops: stops,
+        transform: transform,
+        tileMode: tileMode,
+        center: center,
+        startAngle: startAngle,
+        endAngle: endAngle,
       );
     } else {
       return RadialGradient(
@@ -561,7 +553,7 @@ extension GradientUtils on Gradient {
 
   /// If this is a `ShadedSteps`-type `Gradient`, returns `this.shadeFactor`.
   /// Otherwise the fallback retrun value is `0`.
-  num get shadeFactor => this is LinearShadedSteps
+  double get shadeFactor => this is LinearShadedSteps
       ? (this as LinearShadedSteps).shadeFactor
       : this is RadialShadedSteps
           ? (this as RadialShadedSteps).shadeFactor

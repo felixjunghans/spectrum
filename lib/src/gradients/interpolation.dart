@@ -522,7 +522,7 @@ class GradientPacket {
   //# UNIVERSAL
 
   /// {@template gradientpacket_getter}
-  /// Returns the interpolation of this [Gradient] or [Gradient]-subclass
+  /// Returns the interpolation of this [Gradient] / `Gradient`-subclass
   /// property at keyframe [t] for gradients [a] and [b].
   ///
   /// See [GradientUtils] to understand how fallbacks are determined for
@@ -596,14 +596,15 @@ class GradientPacket {
   double get softness =>
       math.max(0.0, ui.lerpDouble(_a.softness, _b.softness, _t)!);
 
+  //# SHADED STEPS
+
   /// {@macro gradientpacket_getter}
   ColorArithmetic get shadeFunction =>
       t < 0.5 ? _a.shadeFunction : _b.shadeFunction;
 
   /// {@macro gradientpacket_getter}
-  num get shadeFactor => Tween<double>(
-          begin: _a.shadeFactor.toDouble(), end: _b.shadeFactor.toDouble())
-      .transform(t);
+  double get shadeFactor =>
+      math.max(0.0, ui.lerpDouble(a.shadeFactor, b.shadeFactor.toDouble(), t)!);
 
   /// {@macro gradientpacket_getter}
   double get distance =>

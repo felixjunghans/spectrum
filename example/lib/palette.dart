@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:spectrum/spectrum.dart';
 
+// ignore_for_file: public_member_api_docs
+
 /// Create a [new GenerateComplements] and provide a required [color] and
 /// [count] to return a [SingleChildScrollView] with [Wrap]ped containers
 /// that are padded and progress in color through the `List<Color>` formed

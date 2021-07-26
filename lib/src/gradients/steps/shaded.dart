@@ -1,4 +1,7 @@
-/// Provides `FooShadedSteps`
+/// Provides `FooShadedSteps`:
+/// - [LinearShadedSteps]
+/// - [RadialShadedSteps]
+/// - [SweepShadedSteps]
 library gradients;
 
 import 'dart:math' as math;
@@ -7,7 +10,6 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart' show listEquals, objectRuntimeType;
 
 import '../common.dart';
-import '../interpolation.dart';
 import '../models.dart';
 import 'operators.dart';
 import 'steps.dart';
@@ -26,7 +28,37 @@ List<double> _quadruple(
   return stops % ShadeStep(distance, softness);
 }
 
+/// Construct a [new LinearShadedSteps] that progresses from one color to the
+/// next in hard steps, each with its own intrinsic "shading," as opposed to
+/// smooth transitions by way of "quadruplicating" colors and stops.
+///
+/// Consider [LinearSteps] for more information. \
+/// The difference for `FooShadedSteps` is that instead of duplicating a color
+/// to make it hard step at each transition, each color and stop is laid out
+/// according to a `softness`, `shadeFunction` and `shadeFactor` to provide the
+/// same effect across *four* entries instead of only two and allow greater
+/// control over the inner appearance of *each* given step.
 class LinearShadedSteps extends LinearSteps {
+  /// A standard [Steps] gradient differs from the average [Gradient] in its
+  /// progression from one color to the next. Instead of smoothly transitioning
+  /// between colors, `Steps` have hard edges created by duplicating colors and
+  /// stops.
+  ///
+  /// This `LinerShadedSteps` evolves [LinearSteps] one step further by creating
+  /// the "stepping" effect across four colors/stops entries instead of only
+  /// two. This allows greater control over the inner appearance of *each*
+  /// given step; "shading" it darker or "shading" it more transparent, for
+  /// example, in accordance with [shadeFunction].
+  ///
+  /// The default `shadeFunction` is [Shades.withWhite] and the default
+  /// [shadeFactor] is `-90`. In this default scenario, each step will
+  /// transition from `color` to `color.withwhite(-90)`.
+  ///
+  /// The [distance], defaulting at `0.6` is a percentage between the start and
+  /// end of *each* step color to begin transitioning toward the color value
+  /// with [shadeFunction] applied to it.
+  ///
+  /// See [LinearSteps] for more information.
   const LinearShadedSteps({
     this.shadeFunction = Shades.withWhite,
     this.shadeFactor = -90,
@@ -48,14 +80,62 @@ class LinearShadedSteps extends LinearSteps {
           transform: transform,
         );
 
+  /// For any given "step", comprised of a single color "quadruplicated" across
+  /// four stops, the `shadeFunction` will be called on the color and this
+  /// result is placed as the fourth, final stop for this color step.
+  ///
+  /// There is a standard gradient transition between `color` and the "shaded"
+  /// final entry `shadeFunction(color, shadeFactor)` begining at a percentage
+  /// from start->end of this step denoted by [distance]. Default `distance`
+  /// is `0.6`.
+  ///
+  /// A [ColorArithmetic] function, as required, must confrom to
+  ///
+  ///     Color Function(Color color, double factor)
+  ///
+  /// Default `shadeFunction` is [Shades.withWhite] which provides [shadeFactor]
+  /// as `color.withWhite(shadeFactor)`. Method `withWhite()` is like
+  /// `withRed()` or `withBlue()` but it adds the given value to all three
+  /// [Color] components, lightening the color. See [Shading].
+  ///
+  /// See [Shades] for a few pre-defined [ColorArithmetic] functions.
   final ColorArithmetic shadeFunction;
-  final num shadeFactor;
+
+  /// A `double` to provide to [shadeFunction] when "shading" each colored step.
+  ///
+  /// The default value is `-90` as this corresponds to the default
+  /// [shadeFunction] of [Shades.withWhite]. In this scenario, the color of each
+  /// step transitions from `thatColor` to `thatColor.withWhite(-90)`.
+  final double shadeFactor;
+
+  /// A value between `0.0 .. 1.0`, defaulting at `0.6`, that places the
+  /// "midpoint" for each color shading function in the `Steps`.
+  ///
+  /// It is a percentage between the start and end of *each* step color to begin
+  /// transitioning toward the color value with [shadeFunction] applied to it.
+  ///
+  /// Imagine this represents the color red as a dark "shaded step" with
+  /// `distance ~= 0.5` (note: each color and stop in a `FooShadedSteps` is
+  /// "quadruplicated", so this diagram accurately represents how each color
+  /// will be divided):
+  ///
+  ///     |-----------------+++++++++++++++++++++++|
+  ///     [RED]  . [RED]  . [MIDPOINT] . [DARK RED]
+  ///
+  /// Then imagine this represents the same scenario but `distance ~= 0.25`:
+  ///
+  ///     |--------++++++++++++++++++++++++++++++++++++++++++|
+  ///     [RED]  . [MIDPOINT] . [STILL BLENDING] . [DARK RED]
   final double distance;
 
+  /// Overrides `Steps` property to "quadruplicate" with shading instead of
+  /// only duplicating.
   @override
   List<Color> get steppedColors =>
       colors ^ Shade(function: shadeFunction, factor: shadeFactor);
 
+  /// Overrides `Steps` property to "quadruplicate" with shading instead of
+  /// only duplicating.
   @override
   List<double> get steppedStops =>
       _quadruple(stops, colors, softness, distance);
@@ -65,7 +145,7 @@ class LinearShadedSteps extends LinearSteps {
   @override
   LinearShadedSteps copyWith({
     ColorArithmetic? shadeFunction,
-    int? shadeFactor,
+    double? shadeFactor,
     double? distance,
     double? softness,
     List<Color>? colors,
@@ -118,15 +198,17 @@ class LinearShadedSteps extends LinearSteps {
   ///
   /// The `t` argument represents a position on the timeline, with `0.0` meaning
   /// that the interpolation has not started, returning `a` (or something
-  /// equivalent to `a`), `1.0` meaning that the interpolation has finished,
-  /// returning `b` (or something equivalent to `b`), and values in between
-  /// meaning that the interpolation is at the relevant point on the timeline
-  /// between `a` and `b`. The interpolation can be extrapolated beyond `0.0`
-  /// and `1.0`, so negative values and values greater than `1.0` are valid
-  /// (and can easily be generated by curves such as `Curves.elasticInOut`).
+  /// equivalent to `a`); `1.0` meaning that the interpolation has finished,
+  /// returning `b` (or something equivalent to `b`); and values in between
+  /// `0.0 < t < 1.0` meaning that the interpolation is at the relevant point as
+  /// a percentage along the timeline between `a` and `b`.
   ///
-  /// Values for `t` are usually obtained from an [Animation<double>],
-  /// such as an `AnimationController`.
+  /// The interpolation can be extrapolated beyond `0.0` and `1.0`, so negative
+  /// values and values greater than `1.0` are valid (and can easily be
+  /// generated by curves such as [Curves.elasticInOut]).
+  ///
+  /// Values for `t` are usually obtained from an [Animation<double>], such as
+  /// an `AnimationController`.
   static Gradient? lerp(LinearShadedSteps? a, LinearShadedSteps? b, double t) {
     if (a == null && b == null) return null;
     if (a == null) return b!.scale(t);
@@ -145,9 +227,8 @@ class LinearShadedSteps extends LinearSteps {
     // // PrimitiveGradient.from(a), PrimitiveGradient.from(b), t);
     return LinearShadedSteps(
       // shadeFactor:StepTween(begin: a.shadeFactor,end: b.shadeFactor).lerp(t),
-      shadeFactor: Tween<double>(
-              begin: a.shadeFactor.toDouble(), end: b.shadeFactor.toDouble())
-          .transform(t),
+      shadeFactor: math.max(
+          0.0, ui.lerpDouble(a.shadeFactor, b.shadeFactor.toDouble(), t)!),
       distance: math.max(0.0, ui.lerpDouble(a.distance, b.distance, t)!),
       softness: math.max(0.0, ui.lerpDouble(a.softness, b.softness, t)!),
       colors: interpolated.colors,
@@ -189,7 +270,37 @@ class LinearShadedSteps extends LinearSteps {
   // ', \nresolved colors: $steppedColors, resolved stops: $steppedStops';
 }
 
+/// Construct a [new RadialShadedSteps] that progresses from one color to the
+/// next in hard steps, each with its own intrinsic "shading," as opposed to
+/// smooth transitions by way of "quadruplicating" colors and stops.
+///
+/// Consider [RadialSteps] for more information. \
+/// The difference for `FooShadedSteps` is that instead of duplicating a color
+/// to make it hard step at each transition, each color and stop is laid out
+/// according to a `softness`, `shadeFunction` and `shadeFactor` to provide the
+/// same effect across *four* entries instead of only two and allow greater
+/// control over the inner appearance of *each* given step.
 class RadialShadedSteps extends RadialSteps {
+  /// A standard [Steps] gradient differs from the average [Gradient] in its
+  /// progression from one color to the next. Instead of smoothly transitioning
+  /// between colors, `Steps` have hard edges created by duplicating colors and
+  /// stops.
+  ///
+  /// This `RadialShadedSteps` evolves [RadialSteps] one step further by
+  /// creating the "stepping" effect across four colors/stops entries instead of
+  /// only two. This allows greater control over the inner appearance of *each*
+  /// given step; "shading" it darker or "shading" it more transparent, for
+  /// example, in accordance with [shadeFunction].
+  ///
+  /// The default `shadeFunction` is [Shades.withWhite] and the default
+  /// [shadeFactor] is `-90`. In this default scenario, each step will
+  /// transition from `color` to `color.withwhite(-90)`.
+  ///
+  /// The [distance], defaulting at `0.6` is a percentage between the start and
+  /// end of *each* step color to begin transitioning toward the color value
+  /// with [shadeFunction] applied to it.
+  ///
+  /// See [RadialSteps] for more information.
   const RadialShadedSteps({
     this.shadeFunction = Shades.withWhite,
     this.shadeFactor = -90,
@@ -215,14 +326,62 @@ class RadialShadedSteps extends RadialSteps {
           transform: transform,
         );
 
+  /// For any given "step", comprised of a single color "quadruplicated" across
+  /// four stops, the `shadeFunction` will be called on the color and this
+  /// result is placed as the fourth, final stop for this color step.
+  ///
+  /// There is a standard gradient transition between `color` and the "shaded"
+  /// final entry `shadeFunction(color, shadeFactor)` begining at a percentage
+  /// from start->end of this step denoted by [distance]. Default `distance`
+  /// is `0.6`.
+  ///
+  /// A [ColorArithmetic] function, as required, must confrom to
+  ///
+  ///     Color Function(Color color, double factor)
+  ///
+  /// Default `shadeFunction` is [Shades.withWhite] which provides [shadeFactor]
+  /// as `color.withWhite(shadeFactor)`. Method `withWhite()` is like
+  /// `withRed()` or `withBlue()` but it adds the given value to all three
+  /// [Color] components, lightening the color. See [Shading].
+  ///
+  /// See [Shades] for a few pre-defined [ColorArithmetic] functions.
   final ColorArithmetic shadeFunction;
-  final num shadeFactor;
+
+  /// A `double` to provide to [shadeFunction] when "shading" each colored step.
+  ///
+  /// The default value is `-90` as this corresponds to the default
+  /// [shadeFunction] of [Shades.withWhite]. In this scenario, the color of each
+  /// step transitions from `thatColor` to `thatColor.withWhite(-90)`.
+  final double shadeFactor;
+
+  /// A value between `0.0 .. 1.0`, defaulting at `0.6`, that places the
+  /// "midpoint" for each color shading function in the `Steps`.
+  ///
+  /// It is a percentage between the start and end of *each* step color to begin
+  /// transitioning toward the color value with [shadeFunction] applied to it.
+  ///
+  /// Imagine this represents the color red as a dark "shaded step" with
+  /// `distance ~= 0.5` (note: each color and stop in a `FooShadedSteps` is
+  /// "quadruplicated", so this diagram accurately represents how each color
+  /// will be divided):
+  ///
+  ///     |-----------------+++++++++++++++++++++++|
+  ///     [RED]  . [RED]  . [MIDPOINT] . [DARK RED]
+  ///
+  /// Then imagine this represents the same scenario but `distance ~= 0.25`:
+  ///
+  ///     |--------++++++++++++++++++++++++++++++++++++++++++|
+  ///     [RED]  . [MIDPOINT] . [STILL BLENDING] . [DARK RED]
   final double distance;
 
+  /// Overrides `Steps` property to "quadruplicate" with shading instead of
+  /// only duplicating.
   @override
   List<Color> get steppedColors =>
       colors ^ Shade(function: shadeFunction, factor: shadeFactor);
 
+  /// Overrides `Steps` property to "quadruplicate" with shading instead of
+  /// only duplicating.
   @override
   List<double> get steppedStops =>
       _quadruple(stops, colors, softness, distance);
@@ -232,7 +391,7 @@ class RadialShadedSteps extends RadialSteps {
   @override
   RadialShadedSteps copyWith({
     ColorArithmetic? shadeFunction,
-    int? shadeFactor,
+    double? shadeFactor,
     double? distance,
     double? softness,
     List<Color>? colors,
@@ -283,18 +442,20 @@ class RadialShadedSteps extends RadialSteps {
 
   /// Linearly interpolate between two [RadialShadedSteps]s.
   ///
-  /// If either gradient is null, this function linearly interpolates from a
+  /// If either gradient is `null`, this function linearly interpolates from a
   /// a gradient that matches the other gradient in [center], [radius], [stops]
   /// and [tileMode] and with the same [colors] but transparent (using [scale]).
   ///
-  /// The `t` argument represents a position on the timeline, with 0.0 meaning
+  /// The `t` argument represents a position on the timeline, with `0.0` meaning
   /// that the interpolation has not started, returning `a` (or something
-  /// equivalent to `a`), 1.0 meaning that the interpolation has finished,
-  /// returning `b` (or something equivalent to `b`), and values in between
-  /// meaning that the interpolation is at the relevant point on the timeline
-  /// between `a` and `b`. The interpolation can be extrapolated beyond 0.0 and
-  /// 1.0, so negative values and values greater than 1.0 are valid (and can
-  /// easily be generated by curves such as `Curves.elasticInOut`).
+  /// equivalent to `a`); `1.0` meaning that the interpolation has finished,
+  /// returning `b` (or something equivalent to `b`); and values in between
+  /// `0.0 < t < 1.0` meaning that the interpolation is at the relevant point as
+  /// a percentage along the timeline between `a` and `b`.
+  ///
+  /// The interpolation can be extrapolated beyond `0.0` and `1.0`, so negative
+  /// values and values greater than `1.0` are valid (and can easily be
+  /// generated by curves such as [Curves.elasticInOut]).
   ///
   /// Values for `t` are usually obtained from an [Animation<double>], such as
   /// an `AnimationController`.
@@ -316,9 +477,8 @@ class RadialShadedSteps extends RadialSteps {
     // PrimitiveGradient.from(a), PrimitiveGradient.from(b), t);
     return RadialShadedSteps(
       // shadeFactor:StepTween(begin: a.shadeFactor,end: b.shadeFactor).lerp(t),
-      shadeFactor: Tween<double>(
-              begin: a.shadeFactor.toDouble(), end: b.shadeFactor.toDouble())
-          .transform(t),
+      shadeFactor: math.max(
+          0.0, ui.lerpDouble(a.shadeFactor, b.shadeFactor.toDouble(), t)!),
       distance: math.max(0.0, ui.lerpDouble(a.distance, b.distance, t)!),
       softness: math.max(0.0, ui.lerpDouble(a.softness, b.softness, t)!),
       colors: interpolated.colors,
@@ -376,7 +536,37 @@ class RadialShadedSteps extends RadialSteps {
   // ', \nresolved colors: $steppedColors, resolved stops: $steppedStops';
 }
 
+/// Construct a [new SweepShadedSteps] that progresses from one color to the
+/// next in hard steps, each with its own intrinsic "shading," as opposed to
+/// smooth transitions by way of "quadruplicating" colors and stops.
+///
+/// Consider [SweepSteps] for more information. \
+/// The difference for `FooShadedSteps` is that instead of duplicating a color
+/// to make it hard step at each transition, each color and stop is laid out
+/// according to a `softness`, `shadeFunction` and `shadeFactor` to provide the
+/// same effect across *four* entries instead of only two and allow greater
+/// control over the inner appearance of *each* given step.
 class SweepShadedSteps extends SweepSteps {
+  /// A standard [Steps] gradient differs from the average [Gradient] in its
+  /// progression from one color to the next. Instead of smoothly transitioning
+  /// between colors, `Steps` have hard edges created by duplicating colors and
+  /// stops.
+  ///
+  /// This `SweepShadedSteps` evolves [SweepSteps] one step further by creating
+  /// the "stepping" effect across four colors/stops entries instead of only
+  /// two. This allows greater control over the inner appearance of *each*
+  /// given step; "shading" it darker or "shading" it more transparent, for
+  /// example, in accordance with [shadeFunction].
+  ///
+  /// The default `shadeFunction` is [Shades.withWhite] and the default
+  /// [shadeFactor] is `-90`. In this default scenario, each step will
+  /// transition from `color` to `color.withwhite(-90)`.
+  ///
+  /// The [distance], defaulting at `0.6` is a percentage between the start and
+  /// end of *each* step color to begin transitioning toward the color value
+  /// with [shadeFunction] applied to it.
+  ///
+  /// See [SweepSteps] for more information.
   const SweepShadedSteps({
     this.shadeFunction = Shades.withWhite,
     this.shadeFactor = -90,
@@ -400,14 +590,62 @@ class SweepShadedSteps extends SweepSteps {
           transform: transform,
         );
 
+  /// For any given "step", comprised of a single color "quadruplicated" across
+  /// four stops, the `shadeFunction` will be called on the color and this
+  /// result is placed as the fourth, final stop for this color step.
+  ///
+  /// There is a standard gradient transition between `color` and the "shaded"
+  /// final entry `shadeFunction(color, shadeFactor)` begining at a percentage
+  /// from start->end of this step denoted by [distance]. Default `distance`
+  /// is `0.6`.
+  ///
+  /// A [ColorArithmetic] function, as required, must confrom to
+  ///
+  ///     Color Function(Color color, double factor)
+  ///
+  /// Default `shadeFunction` is [Shades.withWhite] which provides [shadeFactor]
+  /// as `color.withWhite(shadeFactor)`. Method `withWhite()` is like
+  /// `withRed()` or `withBlue()` but it adds the given value to all three
+  /// [Color] components, lightening the color. See [Shading].
+  ///
+  /// See [Shades] for a few pre-defined [ColorArithmetic] functions.
   final ColorArithmetic shadeFunction;
-  final num shadeFactor;
+
+  /// A `double` to provide to [shadeFunction] when "shading" each colored step.
+  ///
+  /// The default value is `-90` as this corresponds to the default
+  /// [shadeFunction] of [Shades.withWhite]. In this scenario, the color of each
+  /// step transitions from `thatColor` to `thatColor.withWhite(-90)`.
+  final double shadeFactor;
+
+  /// A value between `0.0 .. 1.0`, defaulting at `0.6`, that places the
+  /// "midpoint" for each color shading function in the `Steps`.
+  ///
+  /// It is a percentage between the start and end of *each* step color to begin
+  /// transitioning toward the color value with [shadeFunction] applied to it.
+  ///
+  /// Imagine this represents the color red as a dark "shaded step" with
+  /// `distance ~= 0.5` (note: each color and stop in a `FooShadedSteps` is
+  /// "quadruplicated", so this diagram accurately represents how each color
+  /// will be divided):
+  ///
+  ///     |-----------------+++++++++++++++++++++++|
+  ///     [RED]  . [RED]  . [MIDPOINT] . [DARK RED]
+  ///
+  /// Then imagine this represents the same scenario but `distance ~= 0.25`:
+  ///
+  ///     |--------++++++++++++++++++++++++++++++++++++++++++|
+  ///     [RED]  . [MIDPOINT] . [STILL BLENDING] . [DARK RED]
   final double distance;
 
+  /// Overrides `Steps` property to "quadruplicate" with shading instead of
+  /// only duplicating.
   @override
   List<Color> get steppedColors =>
       colors ^ Shade(function: shadeFunction, factor: shadeFactor);
 
+  /// Overrides `Steps` property to "quadruplicate" with shading instead of
+  /// only duplicating.
   @override
   List<double> get steppedStops =>
       _quadruple(stops, colors, softness, distance);
@@ -417,7 +655,7 @@ class SweepShadedSteps extends SweepSteps {
   @override
   SweepShadedSteps copyWith({
     ColorArithmetic? shadeFunction,
-    int? shadeFactor,
+    double? shadeFactor,
     double? distance,
     double? softness,
     List<Color>? colors,
@@ -466,17 +704,21 @@ class SweepShadedSteps extends SweepSteps {
 
   /// Linearly interpolate between two [SweepShadedSteps]s.
   ///
-  /// If either gradient is null, then the non-null gradient is returned with
-  /// its color scaled in the same way as the [scale] function.
+  /// If either gradient is `null`, this function linearly interpolates from a
+  /// a gradient that matches the other gradient in [center], [startAngle],
+  /// [endAngle], [stops] & [tileMode] and with the same [colors] but
+  /// transparent (using [scale]).
   ///
-  /// The `t` argument represents a position on the timeline, with 0.0 meaning
+  /// The `t` argument represents a position on the timeline, with `0.0` meaning
   /// that the interpolation has not started, returning `a` (or something
-  /// equivalent to `a`), 1.0 meaning that the interpolation has finished,
-  /// returning `b` (or something equivalent to `b`), and values in between
-  /// meaning that the interpolation is at the relevant point on the timeline
-  /// between `a` and `b`. The interpolation can be extrapolated beyond 0.0 and
-  /// 1.0, so negative values and values greater than 1.0 are valid (and can
-  /// easily be generated by curves such as `Curves.elasticInOut`).
+  /// equivalent to `a`); `1.0` meaning that the interpolation has finished,
+  /// returning `b` (or something equivalent to `b`); and values in between
+  /// `0.0 < t < 1.0` meaning that the interpolation is at the relevant point as
+  /// a percentage along the timeline between `a` and `b`.
+  ///
+  /// The interpolation can be extrapolated beyond `0.0` and `1.0`, so negative
+  /// values and values greater than `1.0` are valid (and can easily be
+  /// generated by curves such as [Curves.elasticInOut]).
   ///
   /// Values for `t` are usually obtained from an [Animation<double>], such as
   /// an `AnimationController`.
@@ -498,9 +740,9 @@ class SweepShadedSteps extends SweepSteps {
     // PrimitiveGradient.from(a), PrimitiveGradient.from(b), t);
     return SweepShadedSteps(
       // shadeFactor: StepTween(begin:a.shadeFactor, end:b.shadeFactor).lerp(t),
-      shadeFactor: Tween<double>(
-              begin: a.shadeFactor.toDouble(), end: b.shadeFactor.toDouble())
-          .transform(t),
+      // shadeFactor:
+      shadeFactor: math.max(
+          0.0, ui.lerpDouble(a.shadeFactor, b.shadeFactor.toDouble(), t)!),
       distance: math.max(0.0, ui.lerpDouble(a.distance, b.distance, t)!),
       softness: math.max(0.0, ui.lerpDouble(a.softness, b.softness, t)!),
       colors: interpolated.colors,

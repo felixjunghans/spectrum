@@ -1,10 +1,10 @@
 name: spectrum
 description: >
-  A rainbow of Color and Gradient utilities. Interpolate intermediate gradients
-  with a realized GradientTween & new type Steps as well as shaded varieties.
-  Color generation & operators.
+  A rainbow of Color and Gradient utilities. Interpolate gradients with a
+  realized GradientTween. New type Steps & shaded varieties. Color generation &
+  operators.
 
-version: 0.2.1
+version: 0.2.1+1
 repository: https://github.com/Zabadam/spectrum
 issue_tracker: https://github.com/Zabadam/spectrum/issues
 

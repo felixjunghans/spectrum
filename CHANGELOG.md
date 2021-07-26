@@ -1,5 +1,12 @@
 # ![spectrum header image](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/img/spectrum_50.gif)
+## **[0.2.1+1]** - 26 JUL 21
+Fixes README links and finishes documentation.
+
 ## **[0.2.1]** - 25 JUL 21
+Modularizes package into `colors` & `gradients` mini-libraries.
+- Import all-in-one as `import 'package:spectrum/spectrum.dart';`
+- Or seperately such as `import 'package:spectrum/colors.dart';`
+
 Reverts usage of Dart @ 2.13 non-function type aliases (AKA `typedef`s) as they
 were throwing `dartdoc`.
 - "`failed: Bad state: typedef GradientStoryboard = Map<GradientAnimation, dynamic> cannot have parameters`"

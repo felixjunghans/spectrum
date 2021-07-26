@@ -81,10 +81,12 @@ class _ExampleState extends State<Example> {
     final gradient2 = SweepShadedSteps(
       center: const Alignment(-0.3, -1.25),
       colors: color.complementary(18),
-      // shadeFunction: Shades.withAlpha,
+      shadeFunction: Shades.withAlpha,
       // softness: 0.005,
       // shadeFactor: 175,
-      shadeFactor: -150,
+      // shadeFactor: -150,
+      // shadeFactor: 125,
+      shadeFactor: 0.95,
     );
 
     final radialSteps = RadialSteps(colors: color.complementary(18));
@@ -164,10 +166,11 @@ class _ExampleState extends State<Example> {
             ],
           ),
 
-          /// FooShadedSteps.shadeFactor demonstration
+          /// FooShadedSteps demonstration
           AnimatedFoilDemo(
             LinearShadedSteps(
               colors: (const Color(0xFF4BFF6F)).complementary(4),
+              shadeFunction: Shades.withWhite, // default
             ),
             isSlow: false,
             isAgressive: true,
@@ -175,7 +178,8 @@ class _ExampleState extends State<Example> {
               /// "tweenSpec" expects a [TweenSpec], which itself is a
               /// `Map<GradientProperty, Tween<dynamic>>`.
               GradientAnimation.tweenSpec: {
-                GradientProperty.shadeFactor: StepTween(begin: -200, end: 200),
+                GradientProperty.shadeFactor: Tween<double>(begin: 0, end: 120),
+                GradientProperty.distance: Tween<double>(begin: 0.6, end: 0.4),
               },
             },
           ),
@@ -362,11 +366,13 @@ final _defaultStoryboard = {
     // // Tween<double>(begin: 2.0 * 3.1415927,end: 4.0 * 3.1415927),
     // GradientProperty.shadeFactor:
     //StepTween(begin: -200,end:0),
-    GradientProperty.softness: Tween<double>(begin: 0, end: 0.14),
+    GradientProperty.softness: Tween<double>(begin: 0.0, end: 0.14),
   },
 };
 
 class AnimatedFoilDemo extends StatefulWidget {
+  /// Tapping this `Foil` widget (that renders the gradient) will
+  /// tween the gradient to `gradient.reversed`.
   const AnimatedFoilDemo(
     this.gradient, {
     Key? key,
