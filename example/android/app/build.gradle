@@ -33,7 +33,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "zaba.app.spectrum"
+        applicationId "app.zaba.spectrum"
         minSdkVersion 16
         targetSdkVersion 30
         versionCode flutterVersionCode.toInteger()

@@ -1,4 +1,10 @@
 # ![spectrum header image](https://raw.githubusercontent.com/Zabadam/spectrum/main/doc/img/spectrum_50.gif)
+## **[0.2.2]** - 27 JUL 21
+Corrects a [`NillGradients`](https://pub.dev/documentation/spectrum/latest/gradients/NillGradients.html)
+bug where `Sweep`-styled nill gradients had both a `startAngle` and `endAngle`
+of `0.0`, throwing an "optimized out" error.
+- The end angle on these nill sweep gradients is now `0.01`.
+
 ## **[0.2.1+1]** - 26 JUL 21
 Fixes README links and finishes documentation.
 

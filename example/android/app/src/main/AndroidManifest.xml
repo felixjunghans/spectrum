@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="zaba.app.spectrum">
+    package="app.zaba.spectrum">
    <application
         android:label="spectrum"
         android:icon="@mipmap/ic_launcher">

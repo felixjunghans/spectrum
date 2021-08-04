@@ -36,13 +36,13 @@ extension NillGradients on Gradient {
       nillify(runtimeType) ??
       copyWith(
         colors: [Colors.transparent, Colors.transparent],
-        stops: [1.0, 1.0],
+        // stops: [0.5, 0.5],
         tileMode: TileMode.clamp,
         begin: Alignment.center,
         end: Alignment.center,
         center: Alignment.center,
         startAngle: 0.0,
-        endAngle: 0.0,
+        endAngle: 0.01,
         radius: 0.0,
         focal: Alignment.center,
         focalRadius: 0.0,
@@ -76,7 +76,7 @@ extension NillGradients on Gradient {
   /// An empty, transparent [LinearGradient].
   static LinearGradient get linear => const LinearGradient(
         colors: [Colors.transparent, Colors.transparent],
-        stops: [1.0, 1.0],
+        // stops: [0.5, 0.5],
         tileMode: TileMode.clamp,
         begin: Alignment.center,
         end: Alignment.center,
@@ -85,28 +85,29 @@ extension NillGradients on Gradient {
   /// An empty, transparent [RadialGradient].
   static RadialGradient get radial => const RadialGradient(
         colors: [Colors.transparent, Colors.transparent],
-        stops: [1.0, 1.0],
+        // stops: [0.5, 0.5],
         tileMode: TileMode.clamp,
         center: Alignment.center,
         radius: 0.0,
-        focal: Alignment.center,
+        // focal: Alignment.center,
+        focal: null,
         focalRadius: 0.0,
       );
 
   /// An empty, transparent [SweepGradient].
   static SweepGradient get sweep => const SweepGradient(
         colors: [Colors.transparent, Colors.transparent],
-        stops: [1.0, 1.0],
+        // stops: [0.5, 0.5],
         tileMode: TileMode.clamp,
         center: Alignment.center,
         startAngle: 0.0,
-        endAngle: 0.0,
+        endAngle: 0.01,
       );
 
   /// An empty, transparent [LinearSteps].
   static LinearSteps get stepsLinear => const LinearSteps(
         colors: [Colors.transparent, Colors.transparent],
-        stops: [1.0, 1.0],
+        // stops: [0.5, 0.5],
         tileMode: TileMode.clamp,
         begin: Alignment.center,
         end: Alignment.center,
@@ -115,21 +116,22 @@ extension NillGradients on Gradient {
   /// An empty, transparent [RadialSteps].
   static RadialSteps get stepsRadial => const RadialSteps(
         colors: [Colors.transparent, Colors.transparent],
-        stops: [1.0, 1.0],
+        // stops: [0.5, 0.5],
         tileMode: TileMode.clamp,
         center: Alignment.center,
         radius: 0.0,
-        focal: Alignment.center,
+        // focal: Alignment.center,
+        focal: null,
         focalRadius: 0.0,
       );
 
   /// An empty, transparent [SweepSteps].
   static SweepSteps get stepsSweep => const SweepSteps(
         colors: [Colors.transparent, Colors.transparent],
-        stops: [1.0, 1.0],
+        // stops: [0.5, 0.5],
         tileMode: TileMode.clamp,
         center: Alignment.center,
         startAngle: 0.0,
-        endAngle: 0.0,
+        endAngle: 0.01,
       );
 }
