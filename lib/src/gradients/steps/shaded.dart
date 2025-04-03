@@ -258,9 +258,31 @@ class LinearShadedSteps extends LinearSteps {
         other.end == end;
   }
 
+  ///
+  int hashValuesx(
+      ColorArithmetic shadeFunction,
+      double shadeFactor,
+      double distance,
+      double softness,
+      List<Object?> colors,
+      List<Object?> stops,
+      TileMode tileMode,
+      AlignmentGeometry begin,
+      AlignmentGeometry end) {
+    return shadeFunction.hashCode ^
+        shadeFactor.hashCode ^
+        distance.hashCode ^
+        softness.hashCode ^
+        colors.hashCode ^
+        stops.hashCode ^
+        tileMode.hashCode ^
+        begin.hashCode ^
+        end.hashCode;
+  }
+
   @override
-  int get hashCode => hashValues(shadeFunction, shadeFactor, distance, softness,
-      hashList(colors), hashList(stops), tileMode, begin, end);
+  int get hashCode => hashValuesx(shadeFunction, shadeFactor, distance,
+      softness, hashList(colors), hashList(stops), tileMode, begin, end);
 
   @override
   String toString() => '${objectRuntimeType(this, 'LinearShadedSteps')} '
@@ -512,9 +534,34 @@ class RadialShadedSteps extends RadialSteps {
               other.radius == radius &&
               other.focal == focal &&
               other.focalRadius == focalRadius;
+  ///
+  int hashValuesx(
+      ColorArithmetic shadeFunction,
+      double shadeFactor,
+      double distance,
+      double softness,
+      List<Object?> colors,
+      List<Object?> stops,
+      TileMode tileMode,
+      AlignmentGeometry center,
+      double radius,
+      AlignmentGeometry? focal,
+      double focalRadius) {
+    return shadeFunction.hashCode ^
+        shadeFactor.hashCode ^
+        distance.hashCode ^
+        softness.hashCode ^
+        colors.hashCode ^
+        stops.hashCode ^
+        tileMode.hashCode ^
+        center.hashCode ^
+        radius.hashCode ^
+        (focal?.hashCode ?? 0) ^
+        focalRadius.hashCode;
+  }
 
   @override
-  int get hashCode => hashValues(
+  int get hashCode => hashValuesx(
       shadeFunction,
       shadeFactor,
       distance,
@@ -774,8 +821,32 @@ class SweepShadedSteps extends SweepSteps {
               other.endAngle == endAngle &&
               other.tileMode == tileMode;
 
+  ///
+  int hashValuesx(
+      ColorArithmetic shadeFunction,
+      double shadeFactor,
+      double distance,
+      double softness,
+      List<Object?> colors,
+      List<Object?> stops,
+      TileMode tileMode,
+      AlignmentGeometry center,
+      double startAngle,
+      double endAngle) {
+    return shadeFunction.hashCode ^
+        shadeFactor.hashCode ^
+        distance.hashCode ^
+        softness.hashCode ^
+        colors.hashCode ^
+        stops.hashCode ^
+        tileMode.hashCode ^
+        center.hashCode ^
+        startAngle.hashCode ^
+        endAngle.hashCode;
+  }
+
   @override
-  int get hashCode => hashValues(
+  int get hashCode => hashValuesx(
       shadeFunction,
       shadeFactor,
       distance,

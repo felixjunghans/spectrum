@@ -117,6 +117,21 @@ abstract class Steps extends Gradient {
   /// and [stops] duplication, considering [softness].
   Gradient get asGradient;
 
+  @override
+  Gradient withOpacity(double opacity) {
+    final newColors = colors
+        .map((color) => color.withOpacity(color.opacity * opacity))
+        .toList();
+    return copyWith(colors: newColors);
+  }
+
+  ///
+  List<Object?> hashList(List<Object?>? list) {
+    if (list == null) return [];
+
+    return list.map((e) => e.hashCode).toList();
+  }
+
   /// Resolve these `Steps` to its smooth `Gradient` counterpart, then use that
   /// gradient's `createShader()` method.
   ///
@@ -282,6 +297,17 @@ class LinearSteps extends Steps {
         other.tileMode == tileMode &&
         other.begin == begin &&
         other.end == end;
+  }
+
+  ///
+  int hashValues(double softness, List<Object?> colors, List<Object?> stops,
+      TileMode tileMode, AlignmentGeometry begin, AlignmentGeometry end) {
+    return softness.hashCode ^
+        colors.hashCode ^
+        stops.hashCode ^
+        tileMode.hashCode ^
+        begin.hashCode ^
+        end.hashCode;
   }
 
   @override
@@ -482,6 +508,20 @@ class RadialSteps extends Steps {
               other.focal == focal &&
               other.focalRadius == focalRadius;
 
+  ///
+  int hashValues(double softness, List<Object?> colors,
+      List<Object?> stops, TileMode tileMode, AlignmentGeometry center,
+      double radius, AlignmentGeometry? focal, double focalRadius) {
+    return softness.hashCode ^
+        colors.hashCode ^
+        stops.hashCode ^
+        tileMode.hashCode ^
+        center.hashCode ^
+        radius.hashCode ^
+        (focal?.hashCode ?? 0) ^
+        focalRadius.hashCode;
+  }
+
   @override
   int get hashCode => hashValues(softness, hashList(colors), hashList(stops),
       tileMode, center, radius, focal, focalRadius);
@@ -668,6 +708,19 @@ class SweepSteps extends Steps {
               other.startAngle == startAngle &&
               other.endAngle == endAngle &&
               other.tileMode == tileMode;
+
+  ///
+  int hashValues(double softness, List<Object?> colors,
+      List<Object?> stops, TileMode tileMode, AlignmentGeometry center,
+      double startAngle, double endAngle) {
+    return softness.hashCode ^
+        colors.hashCode ^
+        stops.hashCode ^
+        tileMode.hashCode ^
+        center.hashCode ^
+        startAngle.hashCode ^
+        endAngle.hashCode;
+  }
 
   @override
   int get hashCode => hashValues(softness, hashList(colors), hashList(stops),

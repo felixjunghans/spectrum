@@ -155,6 +155,14 @@ class IntermediateGradient extends Gradient {
   IntermediateGradient scale(double factor) =>
       IntermediateGradient(primitive.scale(factor), packet);
 
+  @override
+  Gradient withOpacity(double opacity) {
+    final newColors = colors
+        .map((color) => color.withOpacity(color.opacity * opacity))
+        .toList();
+    return copyWith(colors: newColors);
+  }
+
   /// Returns the literal `Gradient` result that this interpreted
   /// `IntermediateGradient` represents with its interpolated [packet], a
   /// [GradientPacket] with its own `t` keyframe, and [primitive] basic
